@@ -3,53 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>26/27 스키 시즌 정복 | 4인 가족 비발디파크 작전본부</title>
+  <title>스키 시즌 정복 | 4인 가족 스키 작전본부</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- 인터랙티브 리조트 지도용 Leaflet CDN -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body { background-color: #090d16; color: #f8fafc; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
     .safe-pb { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-    .glass-card { background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(56, 189, 248, 0.16); backdrop-filter: blur(12px); }
+    .glass-card { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.18); backdrop-filter: blur(12px); }
     .touch-btn { min-height: 44px; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    #vivaldiMap { height: 250px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+    #vivaldiMap { height: 260px; width: 100%; border-radius: 0.75rem; z-index: 10; }
     .leaflet-container { background: #0f172a; }
+    /* 내 위치 + 스마트폰 바라보는 방향 부채꼴 마커 */
+    .heading-marker-wrap { position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; }
+    .heading-cone {
+      position: absolute; top: 0; left: 50%; width: 46px; height: 34px;
+      margin-left: -23px;
+      background: radial-gradient(circle at 50% 100%, rgba(244, 63, 94, 0.75) 0%, rgba(244, 63, 94, 0) 75%);
+      clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+      transform-origin: 50% 100%;
+      transition: transform 0.15s ease-out;
+    }
+    .heading-dot {
+      position: relative; z-index: 2; width: 16px; height: 16px; border-radius: 9999px;
+      background: #f43f5e; border: 3px solid #ffffff; box-shadow: 0 0 12px rgba(244, 63, 94, 0.9);
+    }
   </style>
 </head>
 <body class="antialiased selection:bg-sky-500 selection:text-white">
 
   <!-- 상단 고정 헤더 -->
-  <header class="sticky top-0 z-40 bg-slate-950/92 backdrop-blur-md border-b border-slate-800/80 px-4 py-2.5">
+  <header class="sticky top-0 z-40 bg-slate-950/92 backdrop-blur-md border-b border-slate-800/80 px-3.5 py-2.5">
     <div class="max-w-lg mx-auto flex items-center justify-between">
-      <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+      <div class="flex items-center space-x-2">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/25 shrink-0">
           <i data-lucide="snowflake" class="w-5 h-5 text-white"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="flex items-center space-x-1.5">
-            <h1 class="text-sm font-black tracking-tight text-white">26/27 스키 시즌 정복</h1>
-            <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">VIVALDI</span>
+            <h1 id="headerSeasonTitle" class="text-sm font-black tracking-tight text-white truncate">26/27 스키 시즌 정복</h1>
+            <span id="headerResortBadge" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30 shrink-0">비발디</span>
           </div>
-          <p class="text-[11px] text-slate-400 font-medium">아빠 · 하민(초6) · 하준(초4) · 하은(초1)</p>
+          <p class="text-[11px] text-slate-400 font-medium truncate">아빠 · 하민(초6) · 하준(초4) · 하은(초1)</p>
         </div>
       </div>
-      <div class="flex items-center space-x-1.5">
-        <button onclick="toggleAllAccordionsInCurrentTab()" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-[11px] font-bold text-slate-300 hover:text-white active:scale-95">
-          전체 펼침/접기
+      <div class="flex items-center space-x-1.5 shrink-0">
+        <button onclick="toggleAllAccordionsInCurrentTab()" class="px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-[10px] font-bold text-slate-300 hover:text-white active:scale-95">
+          펼침/접기
         </button>
         <div id="syncBadge" class="flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-[10px] font-bold text-emerald-400">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
           <span id="syncText">저장됨</span>
         </div>
-        <button onclick="openSettingsModal()" aria-label="동기화 설정" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition">
+        <button onclick="openSettingsModal()" aria-label="시즌 및 동기화 설정" class="w-9 h-9 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white active:scale-95 transition">
           <i data-lucide="settings" class="w-4 h-4"></i>
         </button>
       </div>
@@ -57,19 +70,19 @@
   </header>
 
   <!-- 메인 컨테이너 -->
-  <main class="max-w-lg mx-auto px-4 pt-3.5 space-y-3.5">
+  <main class="max-w-lg mx-auto px-3.5 pt-3.5 space-y-3.5">
 
     <!-- ========================================================= -->
     <!-- TAB 1: 작전·날씨 -->
     <!-- ========================================================= -->
     <section id="tab-ops" class="tab-panel space-y-3.5">
 
-      <!-- [항상 표시] 1-1. 홍천 비발디파크 스키 특화 날씨 (오늘 ~ 3일 후) -->
+      <!-- [항상 표시] 1-1. 스키장 특화 날씨 (오늘 ~ 3일 후) -->
       <div class="glass-card rounded-2xl p-4 shadow-xl">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center space-x-2">
             <i data-lucide="cloud-snow" class="w-5 h-5 text-sky-400"></i>
-            <h2 class="text-sm font-black text-white">홍천 비발디파크 설질 & 라이딩 기상</h2>
+            <h2 id="weatherCardTitle" class="text-sm font-black text-white">홍천 비발디파크 설질 & 기상</h2>
           </div>
           <button onclick="fetchSkiWeather(true)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-sky-300 flex items-center space-x-1 active:scale-95">
             <i data-lucide="refresh-cw" class="w-3 h-3"></i>
@@ -80,7 +93,7 @@
         <div class="mb-2.5 p-3 rounded-xl bg-sky-950/60 border border-sky-500/30 flex items-center justify-between">
           <div>
             <span id="todaySnowBadge" class="inline-block text-[11px] font-black px-2 py-0.5 rounded bg-sky-500 text-slate-950 mb-1">기상 조회중...</span>
-            <p id="todayOutfitTip" class="text-xs text-slate-200 font-semibold leading-snug">홍천 서면 슬로프 기온·바람·적설량을 분석합니다.</p>
+            <p id="todayOutfitTip" class="text-xs text-slate-200 font-semibold leading-snug">슬로프 기온·바람·적설량을 분석합니다.</p>
           </div>
           <div class="text-right shrink-0 ml-2">
             <div id="todayTempBig" class="text-xl font-black text-white">--°/--°</div>
@@ -89,10 +102,10 @@
         </div>
 
         <div id="weatherForecastGrid" class="grid grid-cols-4 gap-2"></div>
-        <p id="weatherUpdatedAt" class="text-[10px] text-slate-500 text-right mt-1.5">기준: 홍천군 서면 팔봉리 (비발디파크)</p>
+        <p id="weatherUpdatedAt" class="text-[10px] text-slate-500 text-right mt-1.5">기준: 설정된 스키장 좌표</p>
       </div>
 
-      <!-- [접이식 1] 1-2. 수원 출발 스마트 도착 예측기 (평일/주말 반영) -->
+      <!-- [접이식 1] 1-2. 수원 출발 스마트 도착 예측기 -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-arrival')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
@@ -106,13 +119,10 @@
         </button>
 
         <div id="acc-arrival" class="accordion-body hidden px-4 pb-4 pt-1 border-t border-slate-800/80 space-y-3">
-          <!-- 평일 / 주말 선택 -->
           <div class="grid grid-cols-2 gap-2">
             <button onclick="setDayType('weekday')" id="dayType-weekday" class="touch-btn rounded-xl text-xs font-black border">평일 출발 (원활)</button>
             <button onclick="setDayType('weekend')" id="dayType-weekend" class="touch-btn rounded-xl text-xs font-black border">주말·성수기 (정체 반영)</button>
           </div>
-
-          <!-- 출발 시간 선택 -->
           <div>
             <label class="text-[11px] text-slate-400 font-bold block mb-1.5">수원 자택 출발 시각 선택</label>
             <div class="grid grid-cols-4 gap-1.5">
@@ -122,18 +132,16 @@
               <button onclick="setDepartureTime('11:30')" data-time="11:30" class="dep-btn touch-btn rounded-xl font-black text-xs border">11:30</button>
             </div>
           </div>
-
-          <!-- 예측 결과 박스 -->
           <div id="arrivalPredictionBox" class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5 text-xs"></div>
         </div>
       </div>
 
-      <!-- [접이식 2] 1-3. 가족 맞춤 슬로프 추천 & 실력 업그레이드 -->
+      <!-- [접이식 2] 1-3. 비발디 슬로프 난이도 분류 & 아이별 레벨 조절 -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-slope')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
             <i data-lucide="mountain-snow" class="w-4 h-4 text-emerald-400"></i>
-            <span class="text-xs font-black text-white">아이들 레벨별 슬로프 추천 & 업그레이드</span>
+            <span class="text-xs font-black text-white">슬로프 난이도 분류 & 아이별 레벨 추천</span>
           </div>
           <div class="flex items-center space-x-2">
             <span class="text-[10px] font-bold text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded">레벨 조절</span>
@@ -142,49 +150,41 @@
         </button>
 
         <div id="acc-slope" class="accordion-body hidden px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-3">
-          <!-- 현재 동행 조합 기준 작전 조언 -->
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-300">아이별 현재 스키 레벨 (위/아래 조절)</span>
+            <button onclick="resetKidLevelsToDefault()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[10px] font-black text-amber-300 flex items-center space-x-1 active:scale-95">
+              <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+              <span>추천 기준 복원</span>
+            </button>
+          </div>
+
           <div id="crewStrategyBanner" class="p-3 rounded-xl bg-emerald-950/50 border border-emerald-500/30 text-xs text-emerald-100 leading-relaxed"></div>
 
-          <!-- 아이별 현재 스키 레벨 & 업그레이드 컨트롤 -->
           <div id="kidLevelCards" class="space-y-2"></div>
 
-          <!-- 비발디파크 주요 슬로프 난이도 요약표 -->
-          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1.5 text-[11px]">
-            <p class="font-black text-sky-300 mb-1">🎿 비발디파크 슬로프 난이도 한눈에 보기</p>
-            <p><span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-black">초급</span> <strong>발라드 (경사 5~7°):</strong> 폭이 넓고 완만함. 하은(초1) 첫 리프트 및 A자 연습 최적</p>
-            <p><span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-black">초중급</span> <strong>블루스 (경사 8~11°):</strong> 발라드 마스터 후 11자 턴 연결 연습 코스</p>
-            <p><span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-black">중급</span> <strong>재즈 (경사 11~15°):</strong> 하민·하준 주력 목표 코스. 속도가 붙으므로 안전거리 필수</p>
-            <p><span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-black">상급</span> <strong>테크노 · 펑키:</strong> 경사 급함. 하민 패럴렐 완벽 마스터 후 도전</p>
-          </div>
+          <!-- 비발디파크 실제 슬로프 난이도 & 특징 분류표 -->
+          <div id="slopeCatalogBox" class="p-3 rounded-xl bg-slate-900/95 border border-slate-800 space-y-2 text-[11px]"></div>
         </div>
       </div>
 
-      <!-- [접이식 3] 1-4. 비발디파크 인터랙티브 리조트 지도 (현재 위치 + 주요 거점) -->
+      <!-- [접이식 3] 1-4. 리조트 인터랙티브 지도 (내 위치 + 스마트폰 바라보는 방향 표시) -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-map', true)" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
-            <i data-lucide="map-pin" class="w-4 h-4 text-rose-400"></i>
-            <span class="text-xs font-black text-white">리조트 지도 · 현재 위치 & 주요 포인트</span>
+            <i data-lucide="compass" class="w-4 h-4 text-rose-400"></i>
+            <span class="text-xs font-black text-white">리조트 지도 · 내 위치 & 바라보는 방향</span>
           </div>
           <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-bold text-rose-300 bg-rose-500/15 px-2 py-0.5 rounded">GPS 지도</span>
+            <span id="compassHeadingChip" class="text-[10px] font-bold text-rose-300 bg-rose-500/15 px-2 py-0.5 rounded">나침반 GPS</span>
             <i data-lucide="chevron-down" id="icon-acc-map" class="w-4 h-4 text-slate-400 transition-transform"></i>
           </div>
         </button>
 
         <div id="acc-map" class="accordion-body hidden px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-2.5">
-          <div class="flex space-x-1.5 overflow-x-auto hide-scrollbar pb-1">
-            <button onclick="locateUserOnMap()" class="px-2.5 py-1.5 rounded-lg bg-rose-500 text-white text-[11px] font-black shrink-0 flex items-center space-x-1">
-              <i data-lucide="crosshair" class="w-3 h-3"></i><span>내 위치</span>
-            </button>
-            <button onclick="focusMapPoi('main')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-[11px] font-bold shrink-0">메인센터·매표소</button>
-            <button onclick="focusMapPoi('ballad')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-emerald-300 text-[11px] font-bold shrink-0">발라드(초급)</button>
-            <button onclick="focusMapPoi('jazz')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-sky-300 text-[11px] font-bold shrink-0">재즈(중급)</button>
-            <button onclick="focusMapPoi('flower')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-amber-300 text-[11px] font-bold shrink-0">블랙반 카페</button>
-            <button onclick="focusMapPoi('ocean')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-indigo-300 text-[11px] font-bold shrink-0">오션월드</button>
-          </div>
+          <!-- 잘림 없이 가로 스크롤 가능한 콤팩트 부대시설 버튼 바 -->
+          <div id="mapPoiButtonsBar" class="flex items-center space-x-1.5 overflow-x-auto pb-1.5" style="-webkit-overflow-scrolling: touch;"></div>
           <div id="vivaldiMap"></div>
-          <p id="mapStatusText" class="text-[11px] text-slate-400">핀 버튼을 누르면 해당 위치와 시즌패스 이용 안내가 표시됩니다.</p>
+          <p id="mapStatusText" class="text-[11px] text-slate-400 leading-snug">[내 위치+방향]을 누르면 GPS 위치와 스마트폰이 가리키는 방향이 빨간 부채꼴로 표시됩니다.</p>
         </div>
       </div>
 
@@ -195,41 +195,48 @@
     <!-- ========================================================= -->
     <section id="tab-gear" class="tab-panel hidden space-y-3.5">
 
-      <!-- [항상 표시] 2-1. 동행 멤버 연동 출격 캘린더 -->
+      <!-- [항상 표시] 2-1. 출격 캘린더 & 동행 멤버 (아빠 기본 고정 + 민/준/은 컬러 뱃지) -->
       <div class="glass-card rounded-2xl p-4 shadow-xl">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center space-x-2">
             <i data-lucide="calendar-days" class="w-5 h-5 text-sky-400"></i>
-            <h2 class="text-sm font-black text-white">스키 출격 캘린더 & 동행 멤버</h2>
+            <h2 class="text-sm font-black text-white">스키 출격 캘린더</h2>
           </div>
           <div class="flex items-center space-x-1">
+            <button onclick="goCalendarToday()" class="px-2 py-1 rounded-lg bg-sky-500/20 border border-sky-500/40 text-sky-300 text-[10px] font-black active:scale-95 mr-1">오늘</button>
             <button onclick="changeCalMonth(-1)" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 active:scale-95">
               <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
-            <span id="calMonthLabel" class="text-xs font-black text-white px-1.5">2026년 12월</span>
+            <span id="calMonthLabel" class="text-xs font-black text-white px-1.5">2026년 11월</span>
             <button onclick="changeCalMonth(1)" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 active:scale-95">
               <i data-lucide="chevron-right" class="w-4 h-4"></i>
             </button>
           </div>
         </div>
 
-        <!-- 현재 선택된 출격 동행 멤버 조합 -->
-        <div class="mb-3 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+        <!-- 동행 자녀 선택기 (아빠는 기본 고정 포함) -->
+        <div class="mb-3 p-2.5 rounded-xl bg-slate-900/95 border border-slate-800">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[11px] font-bold text-slate-300">이번 출격 동행 인원 선택 (달력·체크리스트·뱃지 연동)</span>
+            <span class="text-[11px] font-bold text-slate-300">동행 자녀 선택 <span class="text-sky-400">(아빠는 기본 포함)</span></span>
+            <button onclick="selectAllKidsCrew()" class="text-[10px] font-bold text-slate-400 underline">3명 전원 선택</button>
           </div>
-          <div class="grid grid-cols-4 gap-1.5" id="activeCrewSelector"></div>
+          <div class="grid grid-cols-3 gap-2" id="activeCrewSelector"></div>
           <p id="crewWarningTip" class="text-[11px] text-amber-300 font-semibold mt-1.5"></p>
         </div>
 
-        <!-- 범례 -->
+        <!-- 달력 범례 -->
         <div class="flex items-center justify-between text-[10px] mb-1.5 px-1 text-slate-400">
-          <div class="flex items-center space-x-2.5">
+          <div class="flex items-center space-x-2">
             <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>예정</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>출격확정</span></span>
-            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span><span>다녀옴</span></span>
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>확정</span></span>
+            <span class="flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span><span>완료</span></span>
           </div>
-          <span>날짜 탭 ➔ 예정/확정/완료</span>
+          <div class="flex items-center space-x-1">
+            <span class="px-1 rounded bg-indigo-500 text-white font-black text-[9px]">민</span>
+            <span class="px-1 rounded bg-emerald-500 text-slate-950 font-black text-[9px]">준</span>
+            <span class="px-1 rounded bg-pink-500 text-white font-black text-[9px]">은</span>
+            <span>동행표시</span>
+          </div>
         </div>
 
         <!-- 요일 헤더 -->
@@ -237,14 +244,14 @@
           <span class="text-rose-400">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="text-sky-400">토</span>
         </div>
 
-        <!-- 달력 그리드 -->
+        <!-- 달력 날짜 그리드 -->
         <div id="calendarGrid" class="grid grid-cols-7 gap-1 mt-1"></div>
 
-        <!-- 등록된 일정 요약 -->
+        <!-- 등록된 출격 일정 리스트 -->
         <div id="upcomingScheduleList" class="mt-3 pt-2.5 border-t border-slate-800 space-y-1.5"></div>
       </div>
 
-      <!-- [접이식 1] 2-2. 4인 가족 순수 현역 장비 스펙 (예비 장비 삭제 완료) -->
+      <!-- [접이식 1] 2-2. 4인 가족 주력 장비 스펙 -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-gearspec')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
@@ -256,10 +263,7 @@
             <i data-lucide="chevron-down" id="icon-acc-gearspec" class="w-4 h-4 text-slate-400 transition-transform"></i>
           </div>
         </button>
-
-        <div id="acc-gearspec" class="accordion-body hidden px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-2.5" id="gearSpecsContainer">
-          <!-- JS 동적 렌더링 -->
-        </div>
+        <div id="acc-gearspec" class="accordion-body hidden px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-2.5"></div>
       </div>
 
       <!-- [접이식 2] 2-3. 출발 전 짐 싸기 체크리스트 -->
@@ -282,13 +286,10 @@
               전체 해제(새 출발)
             </button>
           </div>
-
           <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
             <div id="checklistProgressBar" class="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
           </div>
-
           <div id="checklistItemsContainer" class="space-y-2"></div>
-
           <div class="pt-2 border-t border-slate-800 flex space-x-2">
             <select id="newCheckMember" class="bg-slate-900 border border-slate-700 rounded-xl px-2 text-xs font-bold text-slate-200">
               <option value="공용">공용</option>
@@ -310,96 +311,51 @@
     <!-- ========================================================= -->
     <section id="tab-benefits" class="tab-panel hidden space-y-3.5">
 
-      <!-- [항상 표시] 3-1. 비주얼 아이콘 터치형 프리미엄 시즌패스 트래커 -->
+      <!-- [항상 표시] 3-1. 동적 시즌패스 혜택 스탬프 (매년 커스텀 가능 + 동일 대형 아이콘 규격) -->
       <div class="glass-card rounded-2xl p-4 shadow-xl border border-amber-500/25">
         <div class="flex items-center justify-between mb-1.5">
           <div class="flex items-center space-x-2">
             <i data-lucide="coffee" class="w-5 h-5 text-amber-400"></i>
-            <h2 class="text-sm font-black text-white">프리미엄 시즌패스 혜택 스탬프</h2>
+            <h2 class="text-sm font-black text-white">시즌패스 무료·할인 혜택 스탬프</h2>
           </div>
-          <span class="text-[10px] font-bold text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded">아이콘 터치 사용/복구</span>
+          <button onclick="openAddBenefitModal()" class="px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black active:scale-95">
+            + 혜택 추가
+          </button>
         </div>
-        <p class="text-[11px] text-slate-400 mb-3">아이콘을 누르면 색상이 채워지며 차감되고, 실수 시 다시 누르면 즉시 복구됩니다.</p>
+        <p class="text-[11px] text-slate-400 mb-3">아이콘을 터치하면 색상이 채워지며 차감되고, 다시 터치하면 즉시 복구됩니다.</p>
 
-        <div class="space-y-3">
-          <!-- 1) 플라워플로우 무료 음료 3잔 -->
-          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800">
-            <div class="flex items-center justify-between mb-2">
-              <div>
-                <span class="text-[10px] font-black text-amber-400">아빠 본인 · 블랙반 2F 플라워플로우</span>
-                <h3 class="text-xs font-black text-white">무료 음료 (아메리카노 / 핫초코)</h3>
-              </div>
-              <span id="count-drink_flower" class="text-xs font-black text-amber-300">잔여 3/3잔</span>
+        <!-- 동적 스탬프 카드 목록 (플라워플로우 3잔, 메인 10잔 등 모든 아이콘 동일 5열 대형 규격) -->
+        <div id="dynamicBenefitsContainer" class="space-y-3"></div>
+
+        <!-- 무제한 혜택 (오션월드 & 케이블카) -->
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] font-bold text-cyan-400">무제한 · 타월 1장</span>
+              <h4 class="text-xs font-black text-white mt-0.5">🏊 오션월드 이용</h4>
+              <p id="count-oceanworld" class="text-xs font-black text-cyan-300 mt-1">누적 0회</p>
             </div>
-            <div id="icons-drink_flower" class="flex flex-wrap gap-2"></div>
+            <div class="flex space-x-1.5 mt-2">
+              <button onclick="adjustUnlimitedBenefit('oceanworld', -1)" class="w-10 h-9 rounded-lg bg-slate-800 text-slate-300 font-black text-sm">-1</button>
+              <button onclick="adjustUnlimitedBenefit('oceanworld', 1)" class="flex-1 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-xs">+1회 적립</button>
+            </div>
           </div>
 
-          <!-- 2) 메인센터/지하위락상가 무료 음료 10잔 -->
-          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800">
-            <div class="flex items-center justify-between mb-2">
-              <div>
-                <span class="text-[10px] font-black text-sky-400">아빠 본인 · 메인센터 2F 커피앤스무디 / 지하 베이커리</span>
-                <h3 class="text-xs font-black text-white">무료 음료 (아메리카노 / 핫초코)</h3>
-              </div>
-              <span id="count-drink_main" class="text-xs font-black text-sky-300">잔여 10/10잔</span>
+          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex flex-col justify-between">
+            <div>
+              <span class="text-[10px] font-bold text-emerald-400">무제한 · 일반캐빈</span>
+              <h4 class="text-xs font-black text-white mt-0.5">🚡 삼악산 케이블카</h4>
+              <p id="count-cablecar" class="text-xs font-black text-emerald-300 mt-1">누적 0회</p>
             </div>
-            <div id="icons-drink_main" class="grid grid-cols-5 gap-2"></div>
-          </div>
-
-          <!-- 3) 스노위랜드 무료 이용 5회 -->
-          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800">
-            <div class="flex items-center justify-between mb-2">
-              <div>
-                <span class="text-[10px] font-black text-indigo-400">메인센터 매표소 · 1일 1회</span>
-                <h3 class="text-xs font-black text-white">스노위랜드 무료 이용권</h3>
-              </div>
-              <span id="count-snowyland" class="text-xs font-black text-indigo-300">잔여 5/5회</span>
-            </div>
-            <div id="icons-snowyland" class="grid grid-cols-5 gap-2"></div>
-          </div>
-
-          <!-- 4) 지류 할인 쿠폰 6매 -->
-          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800">
-            <div class="flex items-center justify-between mb-2">
-              <div>
-                <span class="text-[10px] font-black text-rose-400">실물 지참 필수 (캡처 불가) · 1매 4인</span>
-                <h3 class="text-xs font-black text-white">지류 할인쿠폰 (리프트·워터파크 45% / 객실)</h3>
-              </div>
-              <span id="count-paper_coupons" class="text-xs font-black text-rose-300">잔여 6/6매</span>
-            </div>
-            <div id="icons-paper_coupons" class="grid grid-cols-6 gap-1.5"></div>
-          </div>
-
-          <!-- 5) 무제한 혜택 (오션월드 & 삼악산 케이블카) -->
-          <div class="grid grid-cols-2 gap-2">
-            <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] font-bold text-cyan-400">무제한 · 타월 1장</span>
-                <h4 class="text-xs font-black text-white mt-0.5">🏊 오션월드 이용</h4>
-                <p id="count-oceanworld" class="text-xs font-black text-cyan-300 mt-1">누적 0회</p>
-              </div>
-              <div class="flex space-x-1.5 mt-2">
-                <button onclick="adjustUnlimitedBenefit('oceanworld', -1)" class="w-10 h-9 rounded-lg bg-slate-800 text-slate-300 font-black text-sm">-1</button>
-                <button onclick="adjustUnlimitedBenefit('oceanworld', 1)" class="flex-1 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-black text-xs">+1회 적립</button>
-              </div>
-            </div>
-
-            <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800 flex flex-col justify-between">
-              <div>
-                <span class="text-[10px] font-bold text-emerald-400">무제한 · 일반캐빈</span>
-                <h4 class="text-xs font-black text-white mt-0.5">🚡 삼악산 케이블카</h4>
-                <p id="count-cablecar" class="text-xs font-black text-emerald-300 mt-1">누적 0회</p>
-              </div>
-              <div class="flex space-x-1.5 mt-2">
-                <button onclick="adjustUnlimitedBenefit('cablecar', -1)" class="w-10 h-9 rounded-lg bg-slate-800 text-slate-300 font-black text-sm">-1</button>
-                <button onclick="adjustUnlimitedBenefit('cablecar', 1)" class="flex-1 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-xs">+1회 적립</button>
-              </div>
+            <div class="flex space-x-1.5 mt-2">
+              <button onclick="adjustUnlimitedBenefit('cablecar', -1)" class="w-10 h-9 rounded-lg bg-slate-800 text-slate-300 font-black text-sm">-1</button>
+              <button onclick="adjustUnlimitedBenefit('cablecar', 1)" class="flex-1 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-xs">+1회 적립</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- [접이식 1] 3-2. 왕복 주행거리(km) 누적 & 시즌 통합 가계부 -->
+      <!-- [접이식 1] 3-2. 왕복 주행거리(km) 누적 & 시즌 가계부 -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-budget')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
@@ -413,10 +369,9 @@
         </button>
 
         <div id="acc-budget" class="accordion-body hidden px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-3">
-          <!-- 왕복 거리(km) 적립 카드 -->
           <div class="p-3 rounded-xl bg-sky-950/40 border border-sky-500/30 space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-sky-300">🚗 수원 ↔ 비발디 왕복 주행거리 적립</span>
+              <span id="kmRouteTitle" class="text-xs font-black text-sky-300">🚗 수원 ↔ 비발디 왕복 거리 적립</span>
               <button onclick="editRoundTripKm()" class="text-[10px] font-bold text-slate-300 underline">왕복거리 수정</button>
             </div>
             <div class="grid grid-cols-3 gap-2 text-center">
@@ -435,7 +390,6 @@
             </div>
           </div>
 
-          <!-- 시즌 예산 대시보드 -->
           <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
             <div class="flex justify-between items-baseline mb-1">
               <span class="text-[11px] text-slate-400 font-bold">총 누적 지출 (사전장비 + 현장경비)</span>
@@ -450,7 +404,6 @@
             </div>
           </div>
 
-          <!-- 지출 입력 폼 -->
           <div class="space-y-2 p-3 rounded-xl bg-slate-900/70 border border-slate-800">
             <p class="text-[11px] font-black text-slate-200">+ 다녀온 날 경비 기록</p>
             <div class="grid grid-cols-2 gap-2">
@@ -499,7 +452,7 @@
     <!-- ========================================================= -->
     <section id="tab-growth" class="tab-panel hidden space-y-3.5">
 
-      <!-- [항상 표시] 4-1. 자녀별 개별 누적 스탯 & 15종(실력+인성) 뱃지 진열장 -->
+      <!-- [항상 표시] 4-1. 자녀별 개별 누적 스탯 & 15종 뱃지 진열장 -->
       <div class="glass-card rounded-2xl p-4 shadow-xl">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center space-x-2">
@@ -509,36 +462,32 @@
           <span id="kidBadgeCountPill" class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">0 / 15개 획득</span>
         </div>
 
-        <!-- 자녀 선택 탭 -->
         <div class="grid grid-cols-3 gap-2 mb-3">
           <button onclick="selectKidProfile('하민')" id="kidTab-하민" class="kid-tab-btn touch-btn rounded-xl font-black text-xs bg-sky-500 text-slate-950">하민 (초6)</button>
           <button onclick="selectKidProfile('하준')" id="kidTab-하준" class="kid-tab-btn touch-btn rounded-xl font-bold text-xs bg-slate-900 text-slate-300 border border-slate-700">하준 (초4)</button>
           <button onclick="selectKidProfile('하은')" id="kidTab-하은" class="kid-tab-btn touch-btn rounded-xl font-bold text-xs bg-slate-900 text-slate-300 border border-slate-700">하은 (초1)</button>
         </div>
 
-        <!-- 선택 자녀 개별 누적 통계 -->
         <div id="kidStatsSummary" class="grid grid-cols-3 gap-2 mb-3"></div>
 
-        <!-- 뱃지 카테고리 필터 -->
         <div class="flex space-x-1.5 mb-2.5">
           <button onclick="setBadgeCategoryFilter('ALL')" id="bCat-ALL" class="bcat-btn px-2.5 py-1 rounded-lg text-[11px] font-black bg-amber-400 text-slate-950">전체 15종</button>
           <button onclick="setBadgeCategoryFilter('SKILL')" id="bCat-SKILL" class="bcat-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300">🎿 실력·기록 (9)</button>
           <button onclick="setBadgeCategoryFilter('CHAR')" id="bCat-CHAR" class="bcat-btn px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300">💖 인성·배려 (6)</button>
         </div>
 
-        <!-- 뱃지 그리드 -->
         <div id="kidBadgesGrid" class="grid grid-cols-3 gap-2"></div>
       </div>
 
-      <!-- [접이식 1] 4-2. 귀가 후 스키 일기 & 인성 뱃지 수여 · Insta360 X4 메모 -->
+      <!-- [접이식 1] 4-2. 귀가 후 스키 일기 쓰기 (사진 첨부 최대 3장 지원) -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-diary-form')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
             <i data-lucide="edit-3" class="w-4 h-4 text-indigo-400"></i>
-            <span class="text-xs font-black text-white">귀가 후 스키 일기 쓰기 & 뱃지 수여</span>
+            <span class="text-xs font-black text-white">귀가 후 스키 일기 쓰기 & 사진 등록</span>
           </div>
           <div class="flex items-center space-x-2">
-            <span class="text-[10px] font-bold text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded">Insta360 연동</span>
+            <span class="text-[10px] font-bold text-indigo-300 bg-indigo-500/15 px-2 py-0.5 rounded">사진첨부 지원</span>
             <i data-lucide="chevron-down" id="icon-acc-diary-form" class="w-4 h-4 text-slate-400 transition-transform"></i>
           </div>
         </button>
@@ -555,7 +504,6 @@
             </div>
           </div>
 
-          <!-- 이날 함께 다녀온 자녀 선택 -->
           <div>
             <label class="text-[10px] font-bold text-slate-400 block mb-1">이날 함께 스키 탄 자녀 (선택된 아이만 횟수·시간 적립)</label>
             <div class="grid grid-cols-3 gap-1.5" id="diaryMembersChips">
@@ -565,34 +513,39 @@
             </div>
           </div>
 
-          <!-- 탄 슬로프 선택 -->
           <div>
             <label class="text-[10px] font-bold text-slate-400 block mb-1">오늘 이용한 슬로프</label>
-            <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="toggleSlopeChip(this)" data-slope="발라드(초급)" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">발라드(초급)</button>
-              <button type="button" onclick="toggleSlopeChip(this)" data-slope="블루스(초중급)" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">블루스(초중급)</button>
-              <button type="button" onclick="toggleSlopeChip(this)" data-slope="재즈(중급)" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">재즈(중급)</button>
-              <button type="button" onclick="toggleSlopeChip(this)" data-slope="테크노(상급)" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">테크노(상급)</button>
-              <button type="button" onclick="toggleSlopeChip(this)" data-slope="스노위랜드" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">스노위랜드</button>
-            </div>
+            <div id="diarySlopeChips" class="flex flex-wrap gap-1.5"></div>
           </div>
 
-          <!-- 오늘의 인성·배려 뱃지 칭찬 수여 -->
+          <!-- 사진 등록 (최대 3장 자동 리사이징 압축) -->
+          <div class="p-2.5 rounded-xl bg-slate-950/80 border border-slate-700 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-[10px] font-black text-sky-300 flex items-center space-x-1">
+                <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+                <span>오늘의 스키 사진 등록 (최대 3장)</span>
+              </label>
+              <button type="button" onclick="document.getElementById('diaryPhotoInput').click()" class="px-2.5 py-1 rounded-lg bg-sky-500 text-slate-950 font-black text-[10px] active:scale-95">
+                + 사진 선택/촬영
+              </button>
+              <input id="diaryPhotoInput" type="file" accept="image/*" multiple class="hidden" onchange="handleDiaryPhotoUpload(event)" />
+            </div>
+            <div id="diaryPhotoPreviewGrid" class="grid grid-cols-3 gap-2 empty:hidden"></div>
+          </div>
+
           <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-2">
             <label class="text-[10px] font-black text-amber-300 block">💖 오늘의 인성·배려 뱃지 칭찬 수여 (현재 선택 자녀: <span id="awardTargetKidLabel">하민</span>)</label>
             <div class="flex flex-wrap gap-1.5" id="charBadgeAwardChips"></div>
           </div>
 
-          <!-- Insta360 X4 촬영 하이라이트 -->
           <div>
             <label class="text-[10px] font-bold text-amber-300 flex items-center space-x-1 mb-1">
-              <i data-lucide="video" class="w-3 h-3"></i>
-              <span>Insta360 X4 촬영 하이라이트 메모</span>
+              <i data-lucide="film" class="w-3 h-3"></i>
+              <span>촬영 영상 / 하이라이트 메모 (나중에 영상 찾기용)</span>
             </label>
-            <input id="diaryInsta360" type="text" placeholder="예: 오후 2시 재즈 슬로프 추격 컷 / 하은 발라드 첫 완주" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500" />
+            <input id="diaryInsta360" type="text" placeholder="예: 오후 2시 재즈 슬로프 주행 영상 / 하은 발라드 완주 컷" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500" />
           </div>
 
-          <!-- 아빠의 귀가 후 일기 -->
           <div>
             <label class="text-[10px] font-bold text-slate-400 block mb-1">가족 스키 일기 메모</label>
             <textarea id="diaryNote" rows="2" placeholder="아이들 성장 모습, 서로 챙겨준 에피소드 기록" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500"></textarea>
@@ -609,7 +562,7 @@
         <button type="button" onclick="toggleAccordion('acc-diary-feed')" class="w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-slate-800/40">
           <div class="flex items-center space-x-2">
             <i data-lucide="book-open" class="w-4 h-4 text-sky-400"></i>
-            <span class="text-xs font-black text-white">지난 스키 일기 & Insta360 기록 보기</span>
+            <span class="text-xs font-black text-white">지난 스키 일기 & 사진 기록 보기</span>
           </div>
           <div class="flex items-center space-x-2">
             <span id="diaryFeedCountChip" class="text-[11px] font-black text-sky-300 bg-sky-500/15 px-2 py-0.5 rounded">0건</span>
@@ -626,7 +579,7 @@
 
   </main>
 
-  <!-- 하단 고정 내비게이션 탭 바 (4개 핵심 허브) -->
+  <!-- 하단 고정 내비게이션 탭 바 -->
   <nav class="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 safe-pb">
     <div class="max-w-lg mx-auto grid grid-cols-4 gap-1 px-2 pt-1.5">
       <button onclick="switchMainTab('ops')" id="nav-ops" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-sky-400 bg-sky-500/10">
@@ -648,30 +601,84 @@
     </div>
   </nav>
 
-  <!-- 구글 시트 동기화 설정 모달 -->
-  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+  <!-- ========================================================= -->
+  <!-- 설정 모달 (구글 시트 동기화 + 매년 재사용 스키장/시즌 전환 마법사) -->
+  <!-- ========================================================= -->
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl my-auto">
       <div class="flex items-center justify-between">
         <h3 class="text-base font-black text-white flex items-center space-x-2">
-          <i data-lucide="cloud" class="w-5 h-5 text-sky-400"></i>
-          <span>구글 스프레드시트 동기화 설정</span>
+          <i data-lucide="settings" class="w-5 h-5 text-sky-400"></i>
+          <span>시즌 커스텀 & 클라우드 설정</span>
         </h3>
         <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <p class="text-xs text-slate-300 leading-relaxed">
-        <strong>[2026-2027 가족 스키 장비 및 의류 경비 정리]</strong> 시트에 배포한 Google Apps Script 웹앱 URL을 입력하면 PC와 스마트폰이 실시간 연동됩니다.
-      </p>
-      <div>
-        <label class="text-[11px] font-bold text-slate-400 block mb-1">Google Apps Script 웹앱 URL</label>
-        <input id="gasUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white" />
+
+      <!-- 1. 구글 시트 동기화 -->
+      <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+        <label class="text-[11px] font-black text-sky-300 block">1) Google Apps Script 웹앱 URL</label>
+        <input id="gasUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+        <button onclick="saveGasUrlAndSync()" class="w-full py-2.5 rounded-xl bg-sky-500 text-slate-950 font-black text-xs active:scale-95">URL 저장 및 즉시 동기화</button>
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="saveGasUrlAndSync()" class="touch-btn rounded-xl bg-sky-500 text-slate-950 font-black text-xs">저장 및 동기화</button>
-        <button onclick="exportBackupJson()" class="touch-btn rounded-xl bg-slate-800 text-slate-200 font-bold text-xs border border-slate-700">JSON 백업 복사</button>
+
+      <!-- 2. 매년 재사용: 주력 스키장 리조트 변경 (날씨·거리·지도·슬로프 자동 전환) -->
+      <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+        <label class="text-[11px] font-black text-emerald-300 block">2) 올해 주력 스키장 선택 (매년 변경 가능)</label>
+        <select id="resortPresetSelect" onchange="applyResortPreset(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white">
+          <option value="vivaldi">홍천 비발디파크 (수원 왕복 220km)</option>
+          <option value="gonjiam">광주 곤지암리조트 (수원 왕복 76km)</option>
+          <option value="jisan">이천 지산포레스트 (수원 왕복 64km)</option>
+          <option value="wellihilli">횡성 웰리힐리파크 (수원 왕복 250km)</option>
+          <option value="yongpyong">평창 용평리조트 (수원 왕복 370km)</option>
+          <option value="high1">정선 하이원리조트 (수원 왕복 430km)</option>
+        </select>
+        <p class="text-[10px] text-slate-400">스키장을 변경하면 날씨 예보 좌표, 왕복 거리(km), 지도 중심과 슬로프 목록이 자동 전환됩니다.</p>
+      </div>
+
+      <!-- 3. 내년 시즌 새 출발 & 지난 시즌 아카이브 -->
+      <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+        <label class="text-[11px] font-black text-amber-300 block">3) 내년 새 시즌 시작하기 (시즌 아카이브)</label>
+        <p class="text-[10px] text-slate-300 leading-relaxed">
+          올해 기록을 보관함으로 백업한 뒤, 아이들의 <strong>성장 레벨과 장비 스펙은 유지</strong>하면서 새 시즌의 달력·혜택 스탬프·가계부만 새롭게 초기화합니다.
+        </p>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="startNextSeasonWizard()" class="py-2 rounded-xl bg-amber-400 text-slate-950 font-black text-[11px] active:scale-95">새 시즌 시작 마법사</button>
+          <button onclick="exportBackupJson()" class="py-2 rounded-xl bg-slate-800 text-slate-200 font-bold text-[11px] border border-slate-700">전체 백업 JSON 복사</button>
+        </div>
       </div>
     </div>
+  </div>
+
+  <!-- 새 시즌패스 혜택 추가 모달 -->
+  <div id="addBenefitModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 space-y-3 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-black text-white">+ 시즌패스 혜택 스탬프 추가</h3>
+        <button onclick="closeAddBenefitModal()" class="text-slate-400">✕</button>
+      </div>
+      <div class="space-y-2 text-xs">
+        <input id="newBenTag" type="text" placeholder="소제목 (예: 아빠 본인 · 카페테리아)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+        <input id="newBenTitle" type="text" placeholder="혜택 이름 (예: 무료 아메리카노 10잔)" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+        <div class="grid grid-cols-3 gap-2">
+          <input id="newBenTotal" type="number" min="1" max="30" value="5" placeholder="수량" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+          <input id="newBenUnit" type="text" value="매" placeholder="단위(잔/회/매)" class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white" />
+          <select id="newBenIcon" class="bg-slate-950 border border-slate-700 rounded-xl px-2 py-2 text-white">
+            <option value="coffee">☕ 음료</option>
+            <option value="snowflake">❄️ 눈/썰매</option>
+            <option value="ticket">🎟️ 쿠폰</option>
+            <option value="gift">🎁 기타</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="confirmAddBenefitCard()" class="touch-btn w-full rounded-xl bg-amber-400 text-slate-950 font-black text-xs">스탬프 카드 생성</button>
+    </div>
+  </div>
+
+  <!-- 사진 크게 보기 모달 -->
+  <div id="photoLightboxModal" onclick="this.classList.add('hidden')" class="fixed inset-0 z-50 hidden bg-black/90 flex items-center justify-center p-4">
+    <img id="lightboxImg" src="" class="max-h-[85vh] max-w-full rounded-xl shadow-2xl" />
   </div>
 
   <!-- 토스트 알림 -->
@@ -683,48 +690,137 @@
 
   <script>
     // =========================================================================
-    // 1. 안전 스토리지 & 마스터 데이터 구조
+    // 1. 안전 스토리지 & 스키장 프리셋 & 기본 데이터
     // =========================================================================
-    const STORAGE_KEY = 'VIVALDI_2627_FAMILY_SKI_APP_V3';
+    const STORAGE_KEY = 'VIVALDI_2627_FAMILY_SKI_APP_V4';
     const memStore = {};
     const safeStorage = {
       get(k) { try { return window.localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
       set(k, v) { try { window.localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } }
     };
 
-    const ALL_MEMBERS = [
-      { id: '아빠', short: '아', label: '아빠', color: 'bg-sky-500 text-slate-950' },
-      { id: '하민', short: '민', label: '하민(초6)', color: 'bg-indigo-500 text-white' },
-      { id: '하준', short: '준', label: '하준(초4)', color: 'bg-emerald-500 text-slate-950' },
-      { id: '하은', short: '은', label: '하은(초1)', color: 'bg-pink-500 text-white' }
+    const RESORT_PRESETS = {
+      vivaldi: {
+        id: 'vivaldi', shortName: '비발디', fullName: '홍천 비발디파크',
+        lat: 37.6481, lng: 127.6819, roundTripKm: 220,
+        slopes: ['발라드(초급)', '블루스(초중급)', '재즈(중급)', '힙합(중급)', '테크노(상급)', '펑키(상급)', '락(최상급)', '스노위랜드'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: '발라드 (경사 5~7°)', desc: '폭이 넓고 완만한 메인 초급 코스. 하은(초1) 첫 리프트 및 A자 제동 연습 최적' },
+          { lv: '초중급', cls: 'bg-sky-500/20 text-sky-300', name: '블루스 (경사 8~11°)', desc: '발라드 마스터 후 11자(슈템·패럴렐) 턴 연결 연습에 가장 좋은 코스' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: '재즈 · 힙합 (경사 11~15°)', desc: '하민·하준 주력 목표 중급 코스. 경사 변화가 있어 속도 제어 필수' },
+          { lv: '상급', cls: 'bg-amber-500/20 text-amber-300', name: '테크노 · 펑키 (경사 16~20°)', desc: '상급자 전용 급경사. 하민 패럴렐 완벽 숙달 후 도전' },
+          { lv: '최상급', cls: 'bg-rose-500/20 text-rose-300', name: '락 (경사 22° 이상)', desc: '비발디 최고 난이도 슬로프 (어린이 안전상 진입 제한 권장)' }
+        ],
+        pois: [
+          { key: 'main', label: '메인센터', lat: 37.6481, lng: 127.6819, desc: '매표소 · 지정맥 등록 · 커피앤스무디(2F)' },
+          { key: 'ballad', label: '발라드(초급)', lat: 37.6462, lng: 127.6828, desc: '하은(초1) 주력 초급 슬로프 · 4인 리프트' },
+          { key: 'jazz', label: '재즈(중급)', lat: 37.6445, lng: 127.6845, desc: '하민·하준 중급 코스 · 영상 촬영 명당' },
+          { key: 'flower', label: '블랙반카페', lat: 37.6492, lng: 127.6805, desc: '블랙반 2F 플라워플로우 (무료음료 3잔)' },
+          { key: 'ocean', label: '오션월드', lat: 37.6504, lng: 127.6841, desc: '오션월드 게이트 (무제한 무료 · 타월 1장)' },
+          { key: 'snowy', label: '스노위랜드', lat: 37.6450, lng: 127.6802, desc: '곤돌라 탑승장 · 눈썰매 테마파크(5회 무료)' }
+        ]
+      },
+      gonjiam: {
+        id: 'gonjiam', shortName: '곤지암', fullName: '광주 곤지암리조트',
+        lat: 37.3368, lng: 127.2951, roundTripKm: 76,
+        slopes: ['휘센(초급)', '제타1(초중급)', '윈디(중급)', '씽크(상급)'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: '휘센 (초급)', desc: '완만하고 넓은 입문자 전용 슬로프' },
+          { lv: '초중급', cls: 'bg-sky-500/20 text-sky-300', name: '제타 1·2 (초중급)', desc: '기초 턴 연습용 긴 슬로프' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: '윈디 · 브리즈 (중급)', desc: '패럴렐 주행 연습 최적 코스' }
+        ],
+        pois: [
+          { key: 'main', label: '스키하우스', lat: 37.3368, lng: 127.2951, desc: '메인 매표소 · 장비보관소' },
+          { key: 'ballad', label: '초급슬로프', lat: 37.3350, lng: 127.2940, desc: '휘센 초급 리프트 탑승장' }
+        ]
+      },
+      jisan: {
+        id: 'jisan', shortName: '지산', fullName: '이천 지산포레스트',
+        lat: 37.2173, lng: 127.3446, roundTripKm: 64,
+        slopes: ['레몬(초급)', '오렌지(초중급)', '뉴오렌지(중급)', '실버(상급)'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: '레몬 (1번 초급)', desc: '무빙워크 및 초보자 안전 연습 구간' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: '뉴오렌지 (중급)', desc: '가족 단위 중급 라이딩 코스' }
+        ],
+        pois: [
+          { key: 'main', label: '메인콘도', lat: 37.2173, lng: 127.3446, desc: '매표소 및 식당가' }
+        ]
+      },
+      wellihilli: {
+        id: 'wellihilli', shortName: '웰리힐리', fullName: '횡성 웰리힐리파크',
+        lat: 37.4859, lng: 128.2481, roundTripKm: 250,
+        slopes: ['A1(초급)', 'B1(초중급)', 'C1(중급)', 'E1(상급)'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: 'A1 · A2 (초급)', desc: '가족 입문용 광폭 슬로프' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: 'C1 · D1 (중급)', desc: '카빙 및 패럴렐 연습 코스' }
+        ],
+        pois: [
+          { key: 'main', label: '스키하우스', lat: 37.4859, lng: 128.2481, desc: '메인 슬로프 베이스' }
+        ]
+      },
+      yongpyong: {
+        id: 'yongpyong', shortName: '용평', fullName: '평창 용평리조트',
+        lat: 37.6436, lng: 128.6806, roundTripKm: 370,
+        slopes: ['옐로우(초급)', '핑크(초중급)', '레드파라다이스(중급)', '골드(상급)'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: '옐로우 (초급)', desc: '초보자 전용 완만 코스' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: '레드파라다이스 (중급)', desc: '긴 활주 거리의 명품 중급 슬로프' }
+        ],
+        pois: [
+          { key: 'main', label: '드래곤프라자', lat: 37.6436, lng: 128.6806, desc: '메인 매표소 및 식당가' }
+        ]
+      },
+      high1: {
+        id: 'high1', shortName: '하이원', fullName: '정선 하이원리조트',
+        lat: 37.2067, lng: 128.8385, roundTripKm: 430,
+        slopes: ['제우스2(초급)', '아테나2(초중급)', '헤라2(중급)', '빅토리아(상급)'],
+        slopeDetails: [
+          { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-300', name: '제우스 2 (초급 4.2km)', desc: '정상에서 내려오는 국내 최장 초급 코스' },
+          { lv: '중급', cls: 'bg-indigo-500/20 text-indigo-300', name: '헤라 1·2 (중급)', desc: '최상 설질의 중급자 코스' }
+        ],
+        pois: [
+          { key: 'main', label: '밸리허브', lat: 37.2067, lng: 128.8385, desc: '곤돌라 및 리프트 중심 거점' }
+        ]
+      }
+    };
+
+    const KIDS_META = [
+      { id: '하민', short: '민', label: '하민(초6)', activeCls: 'bg-indigo-500 text-white border-indigo-400', badgeCls: 'bg-indigo-500 text-white' },
+      { id: '하준', short: '준', label: '하준(초4)', activeCls: 'bg-emerald-500 text-slate-950 border-emerald-400', badgeCls: 'bg-emerald-500 text-slate-950' },
+      { id: '하은', short: '은', label: '하은(초1)', activeCls: 'bg-pink-500 text-white border-pink-400', badgeCls: 'bg-pink-500 text-white' }
     ];
+
+    const DEFAULT_KID_LEVELS = { '하민': 3, '하준': 2, '하은': 1 };
 
     const SKILL_LEVELS = [
       { level: 1, name: 'Lv.1 기초·A자 정지', slope: '발라드 (초급)' },
       { level: 2, name: 'Lv.2 A자 연속 S자 턴', slope: '발라드 → 블루스' },
       { level: 3, name: 'Lv.3 슈템 턴 (11자 모으기)', slope: '블루스 (초중급)' },
-      { level: 4, name: 'Lv.4 패럴렐 중급 라이딩', slope: '재즈 (중급)' },
+      { level: 4, name: 'Lv.4 패럴렐 중급 라이딩', slope: '재즈·힙합 (중급)' },
       { level: 5, name: 'Lv.5 카빙·상급 슬로프', slope: '테크노·펑키 (상급)' }
     ];
 
+    const nowDateObj = new Date();
+
     const INITIAL_STATE = {
       gasUrl: '',
+      seasonLabel: '26/27 스키 시즌 정복',
+      resortId: 'vivaldi',
       currentTab: 'ops',
-      dayType: 'weekend', // weekday | weekend
+      dayType: 'weekend',
       departureTime: '06:30',
-      activeCrew: ['아빠', '하민', '하준', '하은'],
-      kidLevels: { '하민': 3, '하준': 2, '하은': 1 },
-      calYear: 2026,
-      calMonth: 11,
+      activeKids: ['하민', '하준', '하은'], // 아빠는 기본 자동 포함
+      kidLevels: { ...DEFAULT_KID_LEVELS },
+      calYear: nowDateObj.getFullYear(),
+      calMonth: nowDateObj.getMonth(),
       selectedKid: '하민',
       badgeCatFilter: 'ALL',
-      roundTripKm: 220, // 수원 ↔ 홍천 비발디 왕복 기본 220km
+      roundTripKm: 220,
       seasonBudget: 3000000,
       preSeasonFixedSpend: 1866200,
       schedules: {
-        '2026-12-05': { status: 'confirmed', members: ['아빠', '하민', '하준', '하은'], note: '시즌 첫 출격' }
+        '2026-12-05': { status: 'confirmed', kids: ['하민', '하준', '하은'], note: '시즌 첫 출격' }
       },
-      // 예비 장비 완전 삭제, 둘째 부츠 테크니카 JT3 펄 235mm 단일화
       gearSpecs: [
         {
           member: '아빠',
@@ -774,31 +870,38 @@
         { id: 'c12', member: '하은', text: '아토믹 110cm 판·폴 + 랑게 스타렛 50(205mm) + POC 헬멧', checked: false },
         { id: 'c13', member: '하은', text: '온요네 아동복(130) + 루디스 핑크 장갑 + 양말 + 바라클라바', checked: false }
       ],
-      benefits: {
-        drink_flower: { total: 3, used: 0 },
-        drink_main: { total: 10, used: 0 },
-        snowyland: { total: 5, used: 0 },
-        paper_coupons: { total: 6, used: 0 },
+      // 동적 혜택 스탬프 리스트 (아이콘 크기 및 레이아웃 100% 통일)
+      benefitList: [
+        { id: 'drink_flower', tag: '아빠 본인 · 블랙반 2F 플라워플로우', title: '무료 음료 (아메리카노 / 핫초코)', total: 3, used: 0, unit: '잔', icon: 'coffee', theme: 'amber', locked: true },
+        { id: 'drink_main', tag: '아빠 본인 · 메인센터 2F / 지하위락상가', title: '무료 음료 (아메리카노 / 핫초코)', total: 10, used: 0, unit: '잔', icon: 'coffee', theme: 'sky', locked: true },
+        { id: 'snowyland', tag: '메인센터 매표소 · 1일 1회', title: '스노위랜드 무료 이용권', total: 5, used: 0, unit: '회', icon: 'snowflake', theme: 'indigo', locked: true },
+        { id: 'paper_coupons', tag: '실물 지참 필수 (캡처 불가) · 1매 4인', title: '지류 할인쿠폰 (리프트·워터파크 45% / 객실)', total: 6, used: 0, unit: '매', icon: 'ticket', theme: 'rose', locked: true }
+      ],
+      unlimitedBenefits: {
         oceanworld: { used: 0 },
         cablecar: { used: 0 }
       },
       expenses: [],
       diaries: [],
       manualCharBadges: { '하민': [], '하준': [], '하은': [] },
+      archivedSeasons: [],
       weatherCache: null
     };
 
     let state = loadState();
+    let pendingDiaryPhotos = []; // 일기 작성 시 임시 첨부 사진 배열 (Base64)
 
     function loadState() {
-      const raw = safeStorage.get(STORAGE_KEY);
+      const raw = safeStorage.get(STORAGE_KEY) || safeStorage.get('VIVALDI_2627_FAMILY_SKI_APP_V3');
       if (!raw) return JSON.parse(JSON.stringify(INITIAL_STATE));
       try {
         const p = JSON.parse(raw);
         return {
           ...JSON.parse(JSON.stringify(INITIAL_STATE)),
           ...p,
-          benefits: { ...INITIAL_STATE.benefits, ...(p.benefits || {}) },
+          activeKids: p.activeKids || (p.activeCrew ? p.activeCrew.filter(x => x !== '아빠') : ['하민', '하준', '하은']),
+          benefitList: Array.isArray(p.benefitList) && p.benefitList.length ? p.benefitList : JSON.parse(JSON.stringify(INITIAL_STATE.benefitList)),
+          unlimitedBenefits: { ...INITIAL_STATE.unlimitedBenefits, ...(p.unlimitedBenefits || {}) },
           manualCharBadges: { '하민': [], '하준': [], '하은': [], ...(p.manualCharBadges || {}) }
         };
       } catch (e) {
@@ -813,6 +916,10 @@
       if (syncCloud && state.gasUrl) pushToGasCloud();
     }
 
+    function getCurrentResort() {
+      return RESORT_PRESETS[state.resortId] || RESORT_PRESETS.vivaldi;
+    }
+
     function showToast(msg) {
       const box = document.getElementById('toastBox');
       document.getElementById('toastMsg').textContent = msg;
@@ -822,7 +929,7 @@
     }
 
     // =========================================================================
-    // 2. 아코디언 접기/펼치기 & 탭 전환
+    // 2. 아코디언 & 탭 전환
     // =========================================================================
     function toggleAccordion(id, isMap = false) {
       const el = document.getElementById(id);
@@ -866,26 +973,31 @@
     }
 
     // =========================================================================
-    // 3. TAB 1: 홍천 비발디파크 날씨 + 도착 예측기 + 슬로프 + 지도
+    // 3. TAB 1: 날씨 + 도착 예측 + 슬로프 + 지도 (내 위치 + 바라보는 방향)
     // =========================================================================
     async function fetchSkiWeather(force = false) {
-      const url = 'https://api.open-meteo.com/v1/forecast?latitude=37.648&longitude=127.682&daily=weathercode,temperature_2m_max,temperature_2m_min,snowfall_sum,windspeed_10m_max&timezone=Asia%2FSeoul&forecast_days=4';
+      const resort = getCurrentResort();
+      document.getElementById('weatherCardTitle').textContent = `${resort.fullName} 설질 & 기상`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,snowfall_sum,windspeed_10m_max&timezone=Asia%2FSeoul&forecast_days=4`;
       try {
         const res = await fetch(url);
         const data = await res.json();
         state.weatherCache = {
+          resortId: resort.id,
           fetchedAt: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
           daily: data.daily
         };
         saveState(false);
         renderWeather();
-        if (force) showToast('홍천 비발디파크 기상 정보를 갱신했습니다.');
+        if (force) showToast(`${resort.fullName} 최신 기상을 반영했습니다.`);
       } catch (e) {
         if (state.weatherCache) renderWeather();
       }
     }
 
     function renderWeather() {
+      const resort = getCurrentResort();
+      document.getElementById('weatherCardTitle').textContent = `${resort.fullName} 설질 & 기상`;
       if (!state.weatherCache?.daily) return;
       const d = state.weatherCache.daily;
       const minT = Math.round(d.temperature_2m_min[0]);
@@ -916,7 +1028,7 @@
       document.getElementById('todayOutfitTip').textContent = tipText;
       document.getElementById('todayTempBig').textContent = `${minT}° / ${maxT}°`;
       document.getElementById('todayWindInfo').textContent = `풍속 ${windMs}m/s · 적설 ${snow}cm`;
-      document.getElementById('weatherUpdatedAt').textContent = `홍천 비발디파크 기준 · 갱신 ${state.weatherCache.fetchedAt}`;
+      document.getElementById('weatherUpdatedAt').textContent = `${resort.fullName} 기준 · 갱신 ${state.weatherCache.fetchedAt}`;
 
       const labels = ['오늘', '내일', '모레', '3일후'];
       const emojis = c => [71,73,75,77,85,86].includes(c) ? '🌨️' : [51,53,55,61,63,65,80,81,82].includes(c) ? '🌧️' : [1,2,3].includes(c) ? '⛅' : '☀️';
@@ -935,19 +1047,11 @@
     }
 
     // 도착 예측기
-    function setDayType(t) {
-      state.dayType = t;
-      saveState();
-      renderArrivalPredictor();
-    }
-
-    function setDepartureTime(t) {
-      state.departureTime = t;
-      saveState();
-      renderArrivalPredictor();
-    }
+    function setDayType(t) { state.dayType = t; saveState(); renderArrivalPredictor(); }
+    function setDepartureTime(t) { state.departureTime = t; saveState(); renderArrivalPredictor(); }
 
     function renderArrivalPredictor() {
+      const resort = getCurrentResort();
       ['weekday', 'weekend'].forEach(k => {
         const btn = document.getElementById(`dayType-${k}`);
         btn.className = state.dayType === k
@@ -961,147 +1065,261 @@
           : 'dep-btn touch-btn rounded-xl font-bold text-xs border border-slate-700 bg-slate-900 text-slate-300';
       });
 
-      // 평일/주말 및 출발 시각에 따른 현실 소요시간 산출
-      let travelMins = state.dayType === 'weekday' ? 95 : 115;
+      const baseMins = Math.round((resort.roundTripKm / 2) * 0.9);
+      let travelMins = state.dayType === 'weekday' ? baseMins : baseMins + 20;
       if (state.dayType === 'weekend' && (state.departureTime === '07:30' || state.departureTime === '11:30')) {
-        travelMins = 135; // 주말 정체 가산
+        travelMins += 20;
       }
 
       const [hh, mm] = state.departureTime.split(':').map(Number);
       const arrTotal = hh * 60 + mm + travelMins;
       const arrStr = `${String(Math.floor(arrTotal / 60) % 24).padStart(2, '0')}:${String(arrTotal % 60).padStart(2, '0')}`;
-      const prepDoneTotal = arrTotal + 35; // 부츠 착용 및 이동 35분
+      const prepDoneTotal = arrTotal + 35;
       const prepDoneStr = `${String(Math.floor(prepDoneTotal / 60) % 24).padStart(2, '0')}:${String(prepDoneTotal % 60).padStart(2, '0')}`;
 
       document.getElementById('arrivalSummaryChip').textContent = `도착 ${arrStr}`;
 
-      const hasYoungest = state.activeCrew.includes('하은');
-      const crowdNote = state.dayType === 'weekend'
-        ? '주말은 10:30~15:00 발라드 리프트 대기열이 길어집니다. 오전 일찍 타거나 오후 4시 이후(정설 후 야간)가 쾌적합니다.'
-        : '평일은 리프트 대기 없이 아이들 반복 연습하기에 최상입니다.';
-
+      const hasYoungest = state.activeKids.includes('하은');
       const paceNote = hasYoungest
-        ? '👧 막내 하은(초1) 동행 모드: 하단 슬로프 중심 연습으로 진행 속도가 느려질 수 있으니, 오전 2~3시간 연습 후 오션월드/스노위랜드 전환도 좋은 전략입니다.'
-        : '👦 하민·하준 중심 모드: 리프트 회전율을 높여 블루스·재즈 슬로프 연속 라이딩이 가능합니다.';
+        ? '👧 막내 하은(초1) 동행 모드: 하단 연습 비중 ↑ · 오전 2~3시간 연습 후 오션월드/스노위랜드 전환 추천'
+        : '👦 하민·하준 집중 모드: 리프트 회전율을 높여 중급 슬로프 연속 라이딩 가능';
 
       document.getElementById('arrivalPredictionBox').innerHTML = `
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <span class="text-slate-400">예상 이동시간 (${state.dayType === 'weekend' ? '주말' : '평일'})</span>
+          <span class="text-slate-400">예상 이동시간 (${resort.shortName} · ${state.dayType === 'weekend' ? '주말' : '평일'})</span>
           <strong class="text-white">약 ${Math.floor(travelMins/60)}시간 ${travelMins%60}분</strong>
         </div>
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <span class="text-slate-400">리조트 도착 ➔ 슬로프 입성</span>
           <strong class="text-sky-300">${arrStr} 도착 ➔ ${prepDoneStr} 탑승</strong>
         </div>
-        <p class="text-[11px] text-slate-300 leading-relaxed pt-1">• ${crowdNote}</p>
-        <p class="text-[11px] text-emerald-300 leading-relaxed">• ${paceNote}</p>
+        <p class="text-[11px] text-emerald-300 leading-relaxed pt-1">• ${paceNote}</p>
       `;
     }
 
-    // 아이별 레벨 업그레이드
+    // 아이별 레벨 조절 & 추천 기준 복원 & 슬로프 분류표
     function changeKidSkillLevel(kid, delta) {
       const cur = state.kidLevels[kid] || 1;
       const next = Math.max(1, Math.min(5, cur + delta));
       state.kidLevels[kid] = next;
       saveState();
       renderSlopeGuide();
-      showToast(`${kid} 스키 레벨이 Lv.${next}로 변경되었습니다!`);
+      showToast(`${kid} 레벨이 Lv.${next}로 조정되었습니다.`);
+    }
+
+    function resetKidLevelsToDefault() {
+      state.kidLevels = { ...DEFAULT_KID_LEVELS };
+      saveState();
+      renderSlopeGuide();
+      showToast('초기 권장 스키 레벨 기준(하민 Lv.3 / 하준 Lv.2 / 하은 Lv.1)으로 복원했습니다.');
     }
 
     function renderSlopeGuide() {
-      const hasHaeun = state.activeCrew.includes('하은');
+      const resort = getCurrentResort();
+      const hasHaeun = state.activeKids.includes('하은');
       document.getElementById('crewStrategyBanner').innerHTML = hasHaeun
-        ? `<strong>👨‍👧‍👦 전원(하은 포함) 동행 작전:</strong> 아빠 혼자 아이 3명 케어 시 막내 하은이는 하단 <strong>발라드 슬로프</strong>에서 A자 제동·리프트 적응에 집중하고, 하민·하준이는 아빠 시야 내 같은 발라드/블루스 라인에서 함께 호흡을 맞추는 것이 안전합니다.`
-        : `<strong>👦 하민·하준 집중 라이딩 작전:</strong> 초급 하단 대기 없이 <strong>블루스 → 재즈(중급)</strong> 리프트를 함께 타며 턴 자세 교정 및 Insta360 X4 추격 촬영을 진행할 수 있습니다.`;
+        ? `<strong>👨‍👧‍👦 아빠 + 하은(포함) 동행 작전:</strong> 막내 하은이는 하단 <strong>초급 슬로프</strong>에서 A자 제동·리프트 적응에 집중하고, 하민·하준이는 같은 하단/초중급 라인에서 함께 호흡을 맞추는 것이 안전합니다.`
+        : `<strong>👦 아빠 + 하민·하준 집중 작전:</strong> 초급 하단 대기 없이 <strong>초중급 → 중급 슬로프</strong> 리프트를 함께 타며 턴 자세 교정 및 촬영을 진행할 수 있습니다.`;
 
       document.getElementById('kidLevelCards').innerHTML = ['하민', '하준', '하은'].map(kid => {
         const lvNum = state.kidLevels[kid] || 1;
         const lvObj = SKILL_LEVELS.find(s => s.level === lvNum) || SKILL_LEVELS[0];
         return `
           <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-            <div>
+            <div class="min-w-0 pr-2">
               <div class="flex items-center space-x-1.5">
                 <span class="text-xs font-black text-white">${kid}</span>
                 <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300">${lvObj.name}</span>
               </div>
-              <p class="text-[11px] text-emerald-400 font-bold mt-1">추천 슬로프: ${lvObj.slope}</p>
+              <p class="text-[11px] text-emerald-400 font-bold mt-1">추천 코스: ${lvObj.slope}</p>
             </div>
-            <div class="flex items-center space-x-1">
-              <button onclick="changeKidSkillLevel('${kid}', -1)" class="w-9 h-9 rounded-lg bg-slate-800 text-slate-300 font-black text-xs">-</button>
-              <button onclick="changeKidSkillLevel('${kid}', 1)" class="px-2.5 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-black text-[11px]">업그레이드 ▲</button>
+            <div class="flex items-center space-x-1.5 shrink-0">
+              <button onclick="changeKidSkillLevel('${kid}', -1)" title="레벨 내리기" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 flex items-center justify-center active:scale-90">
+                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+              </button>
+              <button onclick="changeKidSkillLevel('${kid}', 1)" title="레벨 업그레이드" class="px-2.5 h-9 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-black text-[11px] flex items-center space-x-0.5 active:scale-90">
+                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                <span>UP</span>
+              </button>
             </div>
           </div>
         `;
       }).join('');
+
+      document.getElementById('slopeCatalogBox').innerHTML = `
+        <p class="font-black text-sky-300 mb-1">🎿 ${resort.fullName} 슬로프 난이도 분류</p>
+        ${resort.slopeDetails.map(s => `
+          <p class="leading-relaxed"><span class="px-1.5 py-0.5 rounded ${s.cls} font-black mr-1">${s.lv}</span><strong>${s.name}:</strong> ${s.desc}</p>
+        `).join('')}
+      `;
+      lucide.createIcons();
     }
 
-    // Leaflet 리조트 지도
+    // =========================================================================
+    // 4. Leaflet 리조트 지도 + 가로 스크롤 콤팩트 핀 + 스마트폰 바라보는 방향(Heading)
+    // =========================================================================
     let leafletMap = null;
-    let userMarker = null;
-    const VIVALDI_POIS = {
-      main: { lat: 37.6481, lng: 127.6819, title: '메인센터 · 매표소 · 커피앤스무디(2F)', desc: '시즌패스 발급/지정맥 등록, 무료음료(10잔), 스노위랜드 매표소' },
-      ballad: { lat: 37.6462, lng: 127.6828, title: '발라드 슬로프 (초급)', desc: '하은(초1) 주력 연습 코스 · 4인승 초급 리프트' },
-      jazz: { lat: 37.6445, lng: 127.6845, title: '재즈 슬로프 (중급)', desc: '하민·하준 목표 중급 코스 · Insta360 추격 촬영 명당' },
-      flower: { lat: 37.6492, lng: 127.6805, title: '블랙반 2F 플라워플로우', desc: '아빠 시즌패스 무료 음료(3잔 전용 업장)' },
-      ocean: { lat: 37.6504, lng: 127.6841, title: '오션월드 게이트', desc: '시즌패스 무제한 무료 입장 (타월 1장 제공)' }
-    };
+    let userHeadingMarker = null;
+    let currentHeadingDeg = 0;
+    let compassListening = false;
+
+    function renderMapPoiButtons() {
+      const resort = getCurrentResort();
+      const bar = document.getElementById('mapPoiButtonsBar');
+      if (!bar) return;
+
+      const myLocBtn = `
+        <button onclick="locateUserWithCompass()" class="px-2.5 py-1.5 rounded-lg bg-rose-500 text-white text-[11px] font-black shrink-0 flex items-center space-x-1 shadow-sm active:scale-95">
+          <i data-lucide="navigation" class="w-3 h-3"></i>
+          <span>내 위치+방향</span>
+        </button>
+      `;
+
+      const poiBtns = resort.pois.map(p => `
+        <button onclick="focusMapPoi('${p.key}')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-bold shrink-0 active:scale-95">
+          ${p.label}
+        </button>
+      `).join('');
+
+      bar.innerHTML = myLocBtn + poiBtns;
+      lucide.createIcons();
+    }
 
     function initOrRefreshMap() {
+      const resort = getCurrentResort();
       const container = document.getElementById('vivaldiMap');
       if (!container || typeof L === 'undefined') return;
       if (!leafletMap) {
-        leafletMap = L.map('vivaldiMap').setView([37.6478, 127.6825], 16);
+        leafletMap = L.map('vivaldiMap').setView([resort.lat, resort.lng], 16);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap'
         }).addTo(leafletMap);
-
-        Object.entries(VIVALDI_POIS).forEach(([key, p]) => {
-          L.marker([p.lat, p.lng]).addTo(leafletMap).bindPopup(`<b>${p.title}</b><br><small>${p.desc}</small>`);
-        });
       }
+      // 기존 마커 정리 후 현재 리조트 핀 배치
+      leafletMap.eachLayer(layer => {
+        if (layer instanceof L.Marker && layer !== userHeadingMarker) {
+          leafletMap.removeLayer(layer);
+        }
+      });
+      resort.pois.forEach(p => {
+        L.marker([p.lat, p.lng]).addTo(leafletMap).bindPopup(`<b>${p.label}</b><br><small>${p.desc}</small>`);
+      });
       leafletMap.invalidateSize();
     }
 
     function focusMapPoi(key) {
       initOrRefreshMap();
-      const p = VIVALDI_POIS[key];
+      const resort = getCurrentResort();
+      const p = resort.pois.find(x => x.key === key);
       if (!p || !leafletMap) return;
       leafletMap.setView([p.lat, p.lng], 17);
-      document.getElementById('mapStatusText').textContent = `📍 ${p.title}: ${p.desc}`;
+      document.getElementById('mapStatusText').textContent = `📍 ${p.label}: ${p.desc}`;
     }
 
-    function locateUserOnMap() {
+    function getCardinalDirection(deg) {
+      const dirs = ['북(N)', '북동(NE)', '동(E)', '남동(SE)', '남(S)', '남서(SW)', '서(W)', '북서(NW)'];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
+    function updateHeadingConeRotation(deg) {
+      currentHeadingDeg = deg;
+      const cone = document.getElementById('userHeadingCone');
+      if (cone) {
+        cone.style.transform = `rotate(${deg}deg)`;
+      }
+      const chip = document.getElementById('compassHeadingChip');
+      if (chip) chip.textContent = `방향 ${getCardinalDirection(deg)}`;
+    }
+
+    function startCompassSensor() {
+      if (compassListening) return;
+      const handler = e => {
+        let heading = null;
+        if (typeof e.webkitCompassHeading === 'number') {
+          heading = e.webkitCompassHeading; // iOS Safari
+        } else if (e.alpha !== null) {
+          heading = (360 - e.alpha) % 360; // Android Chrome
+        }
+        if (heading !== null && !isNaN(heading)) {
+          updateHeadingConeRotation(Math.round(heading));
+        }
+      };
+
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(res => {
+            if (res === 'granted') {
+              window.addEventListener('deviceorientation', handler, true);
+              compassListening = true;
+            }
+          }).catch(() => {});
+      } else {
+        window.addEventListener('deviceorientationabsolute', handler, true);
+        window.addEventListener('deviceorientation', handler, true);
+        compassListening = true;
+      }
+    }
+
+    function locateUserWithCompass() {
       initOrRefreshMap();
+      startCompassSensor();
       if (!navigator.geolocation) {
         showToast('이 브라우저에서는 GPS 위치 기능을 지원하지 않습니다.');
         return;
       }
-      document.getElementById('mapStatusText').textContent = '📡 현재 GPS 위치를 수신 중입니다...';
+      document.getElementById('mapStatusText').textContent = '📡 GPS 위치 및 나침반 방향을 수신 중입니다...';
       navigator.geolocation.getCurrentPosition(
         pos => {
-          const { latitude, longitude } = pos.coords;
-          if (userMarker) leafletMap.removeLayer(userMarker);
-          userMarker = L.circleMarker([latitude, longitude], {
-            radius: 9, color: '#f43f5e', fillColor: '#fb7185', fillOpacity: 0.9
-          }).addTo(leafletMap).bindPopup('<b>현재 내 위치</b>').openPopup();
+          const { latitude, longitude, heading } = pos.coords;
+          if (typeof heading === 'number' && !isNaN(heading)) {
+            currentHeadingDeg = Math.round(heading);
+          }
+
+          const customDivIcon = L.divIcon({
+            className: '',
+            html: `<div class="heading-marker-wrap"><div id="userHeadingCone" class="heading-cone" style="transform: rotate(${currentHeadingDeg}deg);"></div><div class="heading-dot"></div></div>`,
+            iconSize: [64, 64],
+            iconAnchor: [32, 32]
+          });
+
+          if (userHeadingMarker) leafletMap.removeLayer(userHeadingMarker);
+          userHeadingMarker = L.marker([latitude, longitude], { icon: customDivIcon })
+            .addTo(leafletMap)
+            .bindPopup(`<b>현재 내 위치</b><br><small>바라보는 방향: ${getCardinalDirection(currentHeadingDeg)}</small>`)
+            .openPopup();
+
           leafletMap.setView([latitude, longitude], 17);
-          document.getElementById('mapStatusText').textContent = '✅ 현재 내 위치를 지도에 표시했습니다.';
+          document.getElementById('mapStatusText').textContent = `✅ 현재 위치와 바라보는 방향(${getCardinalDirection(currentHeadingDeg)})이 표시되었습니다. 폰을 돌리면 빨간 부채꼴이 회전합니다.`;
         },
         () => {
-          document.getElementById('mapStatusText').textContent = '⚠️ 위치 권한이 차단되어 비발디파크 메인센터 기준으로 표시합니다.';
+          const resort = getCurrentResort();
+          leafletMap.setView([resort.lat, resort.lng], 16);
+          document.getElementById('mapStatusText').textContent = `⚠️ GPS 권한이 거부되어 ${resort.fullName} 중심으로 표시합니다.`;
         },
-        { enableHighAccuracy: true, timeout: 6000 }
+        { enableHighAccuracy: true, timeout: 7000 }
       );
     }
 
     // =========================================================================
-    // 4. TAB 2: 동행 멤버 연동 캘린더 & 4인 장비 & 체크리스트
+    // 5. TAB 2: 동행 자녀 선택 + 오늘 날짜 강조 캘린더 + 장비/체크리스트
     // =========================================================================
-    function toggleActiveCrew(memberId) {
-      if (memberId === '아빠') return; // 아빠는 필수 운전자
-      const idx = state.activeCrew.indexOf(memberId);
-      if (idx >= 0) state.activeCrew.splice(idx, 1);
-      else state.activeCrew.push(memberId);
+    function toggleActiveKid(kidId) {
+      const idx = state.activeKids.indexOf(kidId);
+      if (idx >= 0) {
+        if (state.activeKids.length === 1) return showToast('최소 1명의 자녀는 선택되어 있어야 합니다.');
+        state.activeKids.splice(idx, 1);
+      } else {
+        state.activeKids.push(kidId);
+      }
+      saveState();
+      renderCrewSelector();
+      renderArrivalPredictor();
+      renderSlopeGuide();
+      renderChecklist();
+    }
+
+    function selectAllKidsCrew() {
+      state.activeKids = ['하민', '하준', '하은'];
       saveState();
       renderCrewSelector();
       renderArrivalPredictor();
@@ -1110,21 +1328,30 @@
     }
 
     function renderCrewSelector() {
-      document.getElementById('activeCrewSelector').innerHTML = ALL_MEMBERS.map(m => {
-        const active = state.activeCrew.includes(m.id);
+      document.getElementById('activeCrewSelector').innerHTML = KIDS_META.map(k => {
+        const active = state.activeKids.includes(k.id);
         return `
-          <button onclick="toggleActiveCrew('${m.id}')" class="py-2 rounded-xl text-xs font-black border transition ${
-            active ? `${m.color} border-transparent shadow-md` : 'bg-slate-950 border-slate-700 text-slate-500'
+          <button onclick="toggleActiveKid('${k.id}')" class="touch-btn rounded-xl text-xs font-black border transition flex items-center justify-center space-x-1.5 ${
+            active ? `${k.activeCls} shadow-md` : 'bg-slate-950 border-slate-700 text-slate-500'
           }">
-            [${m.short}] ${m.id}
+            <span class="px-1.5 py-0.5 rounded bg-black/20 text-[10px]">${k.short}</span>
+            <span>${k.label}</span>
           </button>
         `;
       }).join('');
 
-      const hasHaeun = state.activeCrew.includes('하은');
+      const hasHaeun = state.activeKids.includes('하은');
       document.getElementById('crewWarningTip').textContent = hasHaeun
         ? '⚠️ 막내 하은(초1) 포함: 하단 연습 비중 ↑ · 오션월드/스노위랜드 병행 추천'
         : '⚡ 하은 미동행: 하민·하준 중급 슬로프 집중 라이딩 가능';
+    }
+
+    function goCalendarToday() {
+      const now = new Date();
+      state.calYear = now.getFullYear();
+      state.calMonth = now.getMonth();
+      renderCalendar();
+      showToast('오늘 날짜가 있는 현재 달로 이동했습니다.');
     }
 
     function changeCalMonth(delta) {
@@ -1137,11 +1364,11 @@
     function toggleDateSchedule(dateStr) {
       const cur = state.schedules[dateStr];
       if (!cur) {
-        state.schedules[dateStr] = { status: 'planned', members: [...state.activeCrew], note: '출격 예정' };
-        showToast(`${dateStr} [예정] 등록 (${state.activeCrew.map(m => m[0]).join('')})`);
+        state.schedules[dateStr] = { status: 'planned', kids: [...state.activeKids], note: '출격 예정' };
+        showToast(`${dateStr} [예정] 등록 (아빠+${state.activeKids.map(k => k[0]).join('·')})`);
       } else if (cur.status === 'planned') {
         state.schedules[dateStr].status = 'confirmed';
-        state.schedules[dateStr].members = [...state.activeCrew];
+        state.schedules[dateStr].kids = [...state.activeKids];
         showToast(`${dateStr} [출격 확정!] 달력에 확정 표시되었습니다.`);
       } else if (cur.status === 'confirmed') {
         state.schedules[dateStr].status = 'done';
@@ -1160,40 +1387,50 @@
       const m = state.calMonth;
       document.getElementById('calMonthLabel').textContent = `${y}년 ${m + 1}월`;
 
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
       const firstDay = new Date(y, m, 1).getDay();
       const lastDate = new Date(y, m + 1, 0).getDate();
       let html = '';
 
-      for (let i = 0; i < firstDay; i++) html += `<div class="h-13 rounded-xl bg-slate-950/30"></div>`;
+      for (let i = 0; i < firstDay; i++) html += `<div class="h-14 rounded-xl bg-slate-950/30"></div>`;
 
       for (let d = 1; d <= lastDate; d++) {
         const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = dateStr === todayStr;
         const sc = state.schedules[dateStr];
-        let cls = 'bg-slate-900/90 border-slate-800 text-slate-300';
-        let tagHtml = '';
+        let cls = isToday
+          ? 'bg-slate-800 border-2 border-sky-400 text-white font-black shadow-md shadow-sky-500/20'
+          : 'bg-slate-900/90 border border-slate-800 text-slate-300';
+        let statusLabel = isToday ? `<span class="text-[8px] font-black text-sky-300 leading-none">오늘</span>` : '';
+        let kidsBadgesHtml = '';
 
         if (sc) {
-          const shorts = (sc.members || ['아빠']).map(id => {
-            const found = ALL_MEMBERS.find(x => x.id === id);
-            return found ? found.short : id[0];
-          }).join('');
+          const kidsList = sc.kids || (sc.members ? sc.members.filter(x => x !== '아빠') : ['하민', '하준', '하은']);
+          kidsBadgesHtml = `<div class="flex items-center justify-center space-x-0.5 mt-0.5">` +
+            kidsList.map(kId => {
+              const km = KIDS_META.find(x => x.id === kId);
+              return km ? `<span class="px-1 rounded text-[8px] font-black leading-tight ${km.badgeCls}">${km.short}</span>` : '';
+            }).join('') + `</div>`;
 
           if (sc.status === 'planned') {
-            cls = 'bg-amber-500/20 border-amber-400 text-amber-200 font-black';
-            tagHtml = `<span class="text-[8px] font-black text-amber-300 leading-tight">예정</span><span class="text-[8px] text-amber-200/90 leading-none">${shorts}</span>`;
+            cls = `bg-amber-500/20 border-2 ${isToday ? 'border-sky-400' : 'border-amber-400'} text-amber-100 font-black`;
+            statusLabel = `<span class="text-[8px] font-black text-amber-300 leading-none">예정</span>`;
           } else if (sc.status === 'confirmed') {
-            cls = 'bg-emerald-500/25 border-emerald-400 text-emerald-200 font-black';
-            tagHtml = `<span class="text-[8px] font-black text-emerald-300 leading-tight">확정!</span><span class="text-[8px] text-emerald-200 leading-none">${shorts}</span>`;
+            cls = `bg-emerald-500/25 border-2 ${isToday ? 'border-sky-400' : 'border-emerald-400'} text-emerald-100 font-black`;
+            statusLabel = `<span class="text-[8px] font-black text-emerald-300 leading-none">확정!</span>`;
           } else if (sc.status === 'done') {
-            cls = 'bg-sky-500/25 border-sky-400 text-sky-200 font-black';
-            tagHtml = `<span class="text-[8px] font-black text-sky-300 leading-tight">완료</span><span class="text-[8px] text-sky-200 leading-none">${shorts}</span>`;
+            cls = `bg-sky-500/25 border-2 ${isToday ? 'border-white' : 'border-sky-400'} text-sky-100 font-black`;
+            statusLabel = `<span class="text-[8px] font-black text-sky-300 leading-none">완료</span>`;
           }
         }
 
         html += `
-          <button onclick="toggleDateSchedule('${dateStr}')" class="h-14 rounded-xl border ${cls} flex flex-col items-center justify-center active:scale-90 transition px-0.5">
-            <span class="text-xs leading-none mb-0.5">${d}</span>
-            ${tagHtml}
+          <button onclick="toggleDateSchedule('${dateStr}')" class="h-14 rounded-xl ${cls} flex flex-col items-center justify-center active:scale-90 transition px-0.5">
+            <span class="text-xs leading-none">${d}</span>
+            ${statusLabel}
+            ${kidsBadgesHtml}
           </button>
         `;
       }
@@ -1208,13 +1445,17 @@
               : info.status === 'done'
               ? '<span class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-black">완료</span>'
               : '<span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-black">예정</span>';
-            const crewStr = (info.members || []).map(id => ALL_MEMBERS.find(x => x.id === id)?.short || id).join('·');
+            const kidsList = info.kids || [];
+            const badges = kidsList.map(kId => {
+              const km = KIDS_META.find(x => x.id === kId);
+              return km ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-black ${km.badgeCls}">${km.short}</span>` : '';
+            }).join(' ');
             return `
               <div class="flex items-center justify-between text-xs bg-slate-900/80 px-3 py-2 rounded-xl border border-slate-800">
                 <div class="flex items-center space-x-2">
                   ${stBadge}
                   <span class="font-bold text-white">${dt}</span>
-                  <span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-800 text-sky-300">${crewStr}</span>
+                  <div class="flex items-center space-x-1"><span class="text-[10px] text-slate-400">아빠+</span>${badges}</div>
                 </div>
                 <button onclick="toggleDateSchedule('${dt}')" class="text-[11px] text-slate-400 underline">변경</button>
               </div>
@@ -1260,8 +1501,8 @@
     }
 
     function renderChecklist() {
-      // 동행 인원으로 선택된 가족 + 필수 + 공용 항목만 표시
-      const visible = state.checklist.filter(c => c.member === '필수' || c.member === '공용' || state.activeCrew.includes(c.member));
+      const activeAll = ['아빠', ...state.activeKids];
+      const visible = state.checklist.filter(c => c.member === '필수' || c.member === '공용' || activeAll.includes(c.member));
       const done = visible.filter(c => c.checked).length;
       const pct = visible.length ? Math.round((done / visible.length) * 100) : 0;
 
@@ -1285,79 +1526,117 @@
     }
 
     // =========================================================================
-    // 5. TAB 3: 비주얼 아이콘 터치 혜택 스탬프 & 왕복 km 적립 가계부
+    // 6. TAB 3: 동적 시즌패스 혜택 스탬프 (동일 대형 아이콘 규격) & 가계부
     // =========================================================================
-    function toggleStampIcon(benefitKey, index) {
-      const b = state.benefits[benefitKey];
-      if (!b) return;
-      // index (0-based): 현재 used보다 작으면 1개 복구(해제), 아니면 1개 사용(채움)
-      if (index < b.used) {
-        b.used = Math.max(0, b.used - 1);
+    const THEME_STYLES = {
+      amber: { tag: 'text-amber-400', count: 'text-amber-300', active: 'bg-amber-500 border-amber-300 text-slate-950 shadow-md shadow-amber-500/20' },
+      sky: { tag: 'text-sky-400', count: 'text-sky-300', active: 'bg-sky-500 border-sky-300 text-slate-950 shadow-md shadow-sky-500/20' },
+      indigo: { tag: 'text-indigo-400', count: 'text-indigo-300', active: 'bg-indigo-500 border-indigo-300 text-white shadow-md shadow-indigo-500/20' },
+      rose: { tag: 'text-rose-400', count: 'text-rose-300', active: 'bg-rose-500 border-rose-300 text-white shadow-md shadow-rose-500/20' }
+    };
+
+    function toggleDynamicStamp(benId, idx) {
+      const item = state.benefitList.find(b => b.id === benId);
+      if (!item) return;
+      if (idx < item.used) {
+        item.used = Math.max(0, item.used - 1);
         showToast('혜택 사용을 1회 복구했습니다.');
       } else {
-        b.used = Math.min(b.total, b.used + 1);
+        item.used = Math.min(item.total, item.used + 1);
         showToast('혜택 1회 사용 체크되었습니다.');
       }
       saveState();
       renderBenefits();
     }
 
+    function openAddBenefitModal() { document.getElementById('addBenefitModal').classList.remove('hidden'); }
+    function closeAddBenefitModal() { document.getElementById('addBenefitModal').classList.add('hidden'); }
+
+    function confirmAddBenefitCard() {
+      const tag = document.getElementById('newBenTag').value.trim() || '시즌패스 추가 혜택';
+      const title = document.getElementById('newBenTitle').value.trim();
+      const total = Math.max(1, Math.min(30, Number(document.getElementById('newBenTotal').value) || 5));
+      const unit = document.getElementById('newBenUnit').value.trim() || '매';
+      const icon = document.getElementById('newBenIcon').value || 'ticket';
+
+      if (!title) return showToast('혜택 이름을 입력해 주세요.');
+      state.benefitList.push({
+        id: 'ben_' + Date.now(),
+        tag, title, total, used: 0, unit, icon, theme: 'sky', locked: false
+      });
+      document.getElementById('newBenTag').value = '';
+      document.getElementById('newBenTitle').value = '';
+      saveState();
+      closeAddBenefitModal();
+      renderBenefits();
+      showToast('새 시즌패스 혜택 스탬프가 추가되었습니다.');
+    }
+
+    function removeCustomBenefit(benId) {
+      state.benefitList = state.benefitList.filter(b => b.id !== benId);
+      saveState();
+      renderBenefits();
+    }
+
     function adjustUnlimitedBenefit(key, delta) {
-      const b = state.benefits[key];
+      const b = state.unlimitedBenefits[key];
       b.used = Math.max(0, (b.used || 0) + delta);
       saveState();
       renderBenefits();
     }
 
     function renderBenefits() {
-      const stampConfigs = [
-        { key: 'drink_flower', unit: '잔', icon: 'coffee', activeCls: 'bg-amber-500 border-amber-300 text-slate-950 shadow-md shadow-amber-500/20' },
-        { key: 'drink_main', unit: '잔', icon: 'coffee', activeCls: 'bg-sky-500 border-sky-300 text-slate-950 shadow-md shadow-sky-500/20' },
-        { key: 'snowyland', unit: '회', icon: 'snowflake', activeCls: 'bg-indigo-500 border-indigo-300 text-white shadow-md shadow-indigo-500/20' },
-        { key: 'paper_coupons', unit: '매', icon: 'ticket', activeCls: 'bg-rose-500 border-rose-300 text-white shadow-md shadow-rose-500/20' }
-      ];
-
-      stampConfigs.forEach(cfg => {
-        const b = state.benefits[cfg.key];
+      const container = document.getElementById('dynamicBenefitsContainer');
+      container.innerHTML = state.benefitList.map(b => {
+        const st = THEME_STYLES[b.theme] || THEME_STYLES.sky;
         const remain = b.total - b.used;
-        document.getElementById(`count-${cfg.key}`).textContent = `잔여 ${remain}/${b.total}${cfg.unit}`;
 
-        let iconsHtml = '';
+        // 플라워플로우 3잔, 메인 10잔 등 모두 동일한 grid-cols-5 대형 정사각형 버튼(h-12, 아이콘 w-5 h-5) 적용
+        let buttonsHtml = '';
         for (let i = 0; i < b.total; i++) {
           const isUsed = i < b.used;
-          iconsHtml += `
-            <button onclick="toggleStampIcon('${cfg.key}', ${i})" class="h-11 rounded-xl border flex flex-col items-center justify-center transition active:scale-90 ${
-              isUsed ? cfg.activeCls : 'bg-slate-950 border-slate-700 text-slate-500 hover:border-slate-500'
-            }" title="${isUsed ? '사용완료 (터치 시 복구)' : '미사용 (터치 시 사용)'}">
-              <i data-lucide="${cfg.icon}" class="w-4 h-4"></i>
+          buttonsHtml += `
+            <button onclick="toggleDynamicStamp('${b.id}', ${i})" class="h-12 w-full rounded-xl border flex flex-col items-center justify-center transition active:scale-90 ${
+              isUsed ? st.active : 'bg-slate-950 border-slate-700 text-slate-400 hover:border-slate-500'
+            }">
+              <i data-lucide="${b.icon}" class="w-5 h-5"></i>
               <span class="text-[9px] font-black mt-0.5">${isUsed ? '사용' : i + 1}</span>
             </button>
           `;
         }
-        document.getElementById(`icons-${cfg.key}`).innerHTML = iconsHtml;
-      });
 
-      document.getElementById('count-oceanworld').textContent = `누적 ${state.benefits.oceanworld.used}회 이용`;
-      document.getElementById('count-cablecar').textContent = `누적 ${state.benefits.cablecar.used}회 이용`;
+        return `
+          <div class="p-3 rounded-xl bg-slate-900/95 border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <div class="min-w-0 pr-2">
+                <span class="text-[10px] font-black ${st.tag} block truncate">${b.tag}</span>
+                <h3 class="text-xs font-black text-white truncate">${b.title}</h3>
+              </div>
+              <div class="flex items-center space-x-1.5 shrink-0">
+                <span class="text-xs font-black ${st.count}">잔여 ${remain}/${b.total}${b.unit}</span>
+                ${!b.locked ? `<button onclick="removeCustomBenefit('${b.id}')" class="text-[10px] text-slate-500 hover:text-rose-400 px-1">✕</button>` : ''}
+              </div>
+            </div>
+            <div class="grid grid-cols-5 gap-2">
+              ${buttonsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('count-oceanworld').textContent = `누적 ${state.unlimitedBenefits.oceanworld.used}회 이용`;
+      document.getElementById('count-cablecar').textContent = `누적 ${state.unlimitedBenefits.cablecar.used}회 이용`;
       lucide.createIcons();
     }
 
     function editRoundTripKm() {
-      const v = prompt('수원 자택 ↔ 홍천 비발디파크 왕복 거리(km)를 입력하세요:', state.roundTripKm);
-      if (v && !isNaN(Number(v))) {
-        state.roundTripKm = Number(v);
-        saveState();
-        renderBudget();
-      }
+      const v = prompt('수원 자택 ↔ 스키장 왕복 거리(km)를 입력하세요:', state.roundTripKm);
+      if (v && !isNaN(Number(v))) { state.roundTripKm = Number(v); saveState(); renderBudget(); }
     }
 
     function editSeasonBudget() {
-      const v = prompt('26/27 시즌 목표 총 예산(원)을 입력하세요:', state.seasonBudget);
-      if (v && !isNaN(Number(v))) {
-        state.seasonBudget = Number(v);
-        saveState();
-        renderBudget();
-      }
+      const v = prompt('시즌 목표 총 예산(원)을 입력하세요:', state.seasonBudget);
+      if (v && !isNaN(Number(v))) { state.seasonBudget = Number(v); saveState(); renderBudget(); }
     }
 
     function addExpenseRecord() {
@@ -1382,7 +1661,9 @@
     }
 
     function renderBudget() {
-      // 다녀온 횟수 계산 (일기 건수 vs 달력 '완료' 날짜 중 큰 값 기준)
+      const resort = getCurrentResort();
+      document.getElementById('kmRouteTitle').textContent = `🚗 수원 ↔ ${resort.shortName} 왕복 거리 적립`;
+
       const doneDates = new Set([
         ...state.diaries.map(d => d.date),
         ...Object.entries(state.schedules).filter(([, v]) => v.status === 'done').map(([k]) => k)
@@ -1406,7 +1687,7 @@
       document.getElementById('budgetProgressBar').style.width = `${pct}%`;
 
       document.getElementById('expenseListContainer').innerHTML = state.expenses.length === 0
-        ? `<p class="text-[11px] text-slate-500 text-center py-1">사전 투자비 1,866,200원 반영됨 · 현장 경비를 추가하세요.</p>`
+        ? `<p class="text-[11px] text-slate-500 text-center py-1">사전 투자비 ${state.preSeasonFixedSpend.toLocaleString()}원 반영됨 · 현장 경비를 추가하세요.</p>`
         : state.expenses.map(e => `
             <div class="flex items-center justify-between text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
               <div>
@@ -1423,20 +1704,18 @@
     }
 
     // =========================================================================
-    // 6. TAB 4: 자녀별 개별 누적 & 15종(실력 9 + 인성·배려 6) 뱃지 & 일기
+    // 7. TAB 4: 성장·뱃지 & 귀가 후 스키 일기 (사진 첨부 리사이징 압축)
     // =========================================================================
     const BADGES_15 = [
-      // 실력·기록 9종
       { id: 's1', cat: 'SKILL', icon: '🎿', title: '시즌 첫 출격', desc: '1회 이상 방문', check: st => st.visits >= 1 },
       { id: 's2', cat: 'SKILL', icon: '🔥', title: '열정 스키어', desc: '누적 3회 출격', check: st => st.visits >= 3 },
-      { id: 's3', cat: 'SKILL', icon: '👑', title: '비발디 단골왕', desc: '누적 5회 출격', check: st => st.visits >= 5 },
+      { id: 's3', cat: 'SKILL', icon: '👑', title: '슬로프 단골왕', desc: '누적 5회 출격', check: st => st.visits >= 5 },
       { id: 's4', cat: 'SKILL', icon: '⏱️', title: '10시간 라이더', desc: '누적 10시간 돌파', check: st => st.hours >= 10 },
       { id: 's5', cat: 'SKILL', icon: '⚡', title: '20시간 철인', desc: '누적 20시간 돌파', check: st => st.hours >= 20 },
-      { id: 's6', cat: 'SKILL', icon: '🌱', title: '발라드 정복', desc: '초급 발라드 완주', check: st => st.slopes.includes('발라드(초급)') },
-      { id: 's7', cat: 'SKILL', icon: '🌊', title: '블루스 라이더', desc: '초중급 블루스 완주', check: st => st.slopes.includes('블루스(초중급)') },
-      { id: 's8', cat: 'SKILL', icon: '🎷', title: '재즈 마스터', desc: '중급 재즈 정복', check: st => st.slopes.includes('재즈(중급)') },
-      { id: 's9', cat: 'SKILL', icon: '🚀', title: '테크노 도전자', desc: '상급 테크노 입성', check: st => st.slopes.includes('테크노(상급)') },
-      // 인성·배려 6종 (칭찬 수여 또는 누적 연동)
+      { id: 's6', cat: 'SKILL', icon: '🌱', title: '초급 슬로프 완주', desc: '초급 코스 완주', check: st => st.slopes.some(x => x.includes('초급')) },
+      { id: 's7', cat: 'SKILL', icon: '🌊', title: '초중급 라이더', desc: '초중급 코스 완주', check: st => st.slopes.some(x => x.includes('초중급')) },
+      { id: 's8', cat: 'SKILL', icon: '🎷', title: '중급 마스터', desc: '중급 슬로프 정복', check: st => st.slopes.some(x => x.includes('중급')) },
+      { id: 's9', cat: 'SKILL', icon: '🚀', title: '상급 도전자', desc: '상급 슬로프 입성', check: st => st.slopes.some(x => x.includes('상급')) },
       { id: 'c1', cat: 'CHAR', icon: '🤝', title: '동생·형제 지킴이', desc: '서로 챙기고 도와줌', manual: true },
       { id: 'c2', cat: 'CHAR', icon: '🎒', title: '장비 정리왕', desc: '내 부츠·장갑 스스로 정리', manual: true },
       { id: 'c3', cat: 'CHAR', icon: '🛡️', title: '안전 수호천사', desc: '헬멧·안전거리 규칙 준수', manual: true },
@@ -1444,6 +1723,64 @@
       { id: 'c5', cat: 'CHAR', icon: '💪', title: '오뚝이 불굴왕', desc: '넘어져도 웃으며 재도전', manual: true },
       { id: 'c6', cat: 'CHAR', icon: '📣', title: '가족 응원단장', desc: '가족 모두에게 힘찬 응원', manual: true }
     ];
+
+    function renderDiarySlopeChips() {
+      const resort = getCurrentResort();
+      document.getElementById('diarySlopeChips').innerHTML = resort.slopes.map(sl => `
+        <button type="button" onclick="toggleSlopeChip(this)" data-slope="${sl}" class="slope-chip px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-950 border border-slate-700 text-slate-300">${sl}</button>
+      `).join('');
+    }
+
+    function compressPhotoFile(file) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const img = new Image();
+          img.onload = () => {
+            const maxW = 720;
+            let w = img.width, h = img.height;
+            if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.68));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleDiaryPhotoUpload(e) {
+      const files = Array.from(e.target.files || []).slice(0, 3 - pendingDiaryPhotos.length);
+      if (files.length === 0) return;
+      for (const f of files) {
+        const compressed = await compressPhotoFile(f);
+        pendingDiaryPhotos.push(compressed);
+      }
+      e.target.value = '';
+      renderPendingDiaryPhotos();
+    }
+
+    function removePendingPhoto(idx) {
+      pendingDiaryPhotos.splice(idx, 1);
+      renderPendingDiaryPhotos();
+    }
+
+    function renderPendingDiaryPhotos() {
+      const grid = document.getElementById('diaryPhotoPreviewGrid');
+      grid.innerHTML = pendingDiaryPhotos.map((src, idx) => `
+        <div class="relative aspect-square rounded-lg overflow-hidden border border-slate-700">
+          <img src="${src}" class="w-full h-full object-cover" />
+          <button type="button" onclick="removePendingPhoto(${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/75 text-white text-[10px] font-black flex items-center justify-center">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function openLightboxPhoto(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('photoLightboxModal').classList.remove('hidden');
+    }
 
     function selectKidProfile(kid) {
       state.selectedKid = kid;
@@ -1471,13 +1808,8 @@
       const kid = state.selectedKid;
       const list = state.manualCharBadges[kid] || [];
       const idx = list.indexOf(badgeId);
-      if (idx >= 0) {
-        list.splice(idx, 1);
-        showToast(`${kid} 인성 뱃지가 해제되었습니다.`);
-      } else {
-        list.push(badgeId);
-        showToast(`🎉 ${kid}에게 인성·배려 뱃지를 수여했습니다!`);
-      }
+      if (idx >= 0) { list.splice(idx, 1); showToast(`${kid} 인성 뱃지가 해제되었습니다.`); }
+      else { list.push(badgeId); showToast(`🎉 ${kid}에게 인성·배려 뱃지를 수여했습니다!`); }
       state.manualCharBadges[kid] = list;
       saveState();
       renderCharBadgeAwardChips();
@@ -1529,26 +1861,26 @@
 
       const entry = {
         id: 'diary_' + Date.now(),
-        date,
-        hours,
-        members,
-        slopes: slopes.length ? slopes : ['발라드(초급)'],
-        insta360,
-        note
+        date, hours, members,
+        slopes: slopes.length ? slopes : [getCurrentResort().slopes[0]],
+        photos: [...pendingDiaryPhotos],
+        insta360, note
       };
 
       const idx = state.diaries.findIndex(d => d.date === date);
       if (idx >= 0) state.diaries[idx] = entry;
       else state.diaries.unshift(entry);
 
-      state.schedules[date] = { status: 'done', members: ['아빠', ...members], note: `${hours}시간 라이딩 완료` };
+      state.schedules[date] = { status: 'done', kids: [...members], note: `${hours}시간 라이딩 완료` };
       document.getElementById('diaryInsta360').value = '';
       document.getElementById('diaryNote').value = '';
+      pendingDiaryPhotos = [];
+      renderPendingDiaryPhotos();
       saveState();
       renderCalendar();
       renderBudget();
       renderGrowthAndBadges();
-      showToast('스키 일기가 저장되고 동행 자녀 뱃지가 갱신되었습니다!');
+      showToast('귀가 일기와 사진이 저장되었습니다!');
     }
 
     function renderGrowthAndBadges() {
@@ -1563,7 +1895,6 @@
       const unlockedList = BADGES_15.filter(b => b.manual ? manualEarned.includes(b.id) : b.check(stats));
 
       document.getElementById('kidBadgeCountPill').textContent = `${unlockedList.length} / ${BADGES_15.length}개 획득`;
-
       document.getElementById('kidStatsSummary').innerHTML = `
         <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-center">
           <span class="text-[10px] text-slate-400 block">${kid} 출격</span>
@@ -1597,38 +1928,99 @@
 
       document.getElementById('diaryFeedCountChip').textContent = `${state.diaries.length}건`;
       document.getElementById('diaryFeedContainer').innerHTML = state.diaries.length === 0
-        ? `<p class="text-xs text-slate-500 text-center py-2">귀가 후 스키 일기를 작성하면 여기에 누적됩니다.</p>`
+        ? `<p class="text-xs text-slate-500 text-center py-2">귀가 후 스키 일기와 사진을 등록하면 여기에 누적됩니다.</p>`
         : state.diaries.map((d, idx) => `
-            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-black text-sky-300">#${state.diaries.length - idx}회 · ${d.date}</span>
-                <span class="text-[11px] font-bold text-emerald-400">${(d.members || []).join('·')} (${d.hours}h)</span>
+                <span class="text-[11px] font-bold text-emerald-400">아빠+${(d.members || []).join('·')} (${d.hours}h)</span>
               </div>
               <div class="flex flex-wrap gap-1">
                 ${(d.slopes || []).map(s => `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-200">${s}</span>`).join('')}
               </div>
-              ${d.insta360 ? `<p class="text-[11px] text-amber-300 font-semibold">🎥 Insta360 X4: ${d.insta360}</p>` : ''}
+              ${(d.photos && d.photos.length) ? `
+                <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                  ${d.photos.map(src => `<img src="${src}" onclick="openLightboxPhoto('${src}')" class="w-full aspect-square object-cover rounded-lg border border-slate-700 cursor-pointer" />`).join('')}
+                </div>
+              ` : ''}
+              ${d.insta360 ? `<p class="text-[11px] text-amber-300 font-semibold">🎬 영상 메모: ${d.insta360}</p>` : ''}
               ${d.note ? `<p class="text-xs text-slate-200 leading-relaxed">${d.note}</p>` : ''}
             </div>
           `).join('');
     }
 
     // =========================================================================
-    // 7. 구글 시트 동기화 (GAS 연동)
+    // 8. 설정 · 매년 재사용 마법사 · 구글 시트 동기화
     // =========================================================================
     function openSettingsModal() {
       document.getElementById('gasUrlInput').value = state.gasUrl || '';
+      document.getElementById('resortPresetSelect').value = state.resortId || 'vivaldi';
       document.getElementById('settingsModal').classList.remove('hidden');
     }
-    function closeSettingsModal() {
-      document.getElementById('settingsModal').classList.add('hidden');
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+    function applyResortPreset(resortId) {
+      const preset = RESORT_PRESETS[resortId];
+      if (!preset) return;
+      state.resortId = resortId;
+      state.roundTripKm = preset.roundTripKm;
+      saveState();
+      applyHeaderLabels();
+      renderMapPoiButtons();
+      renderSlopeGuide();
+      renderArrivalPredictor();
+      renderDiarySlopeChips();
+      renderBudget();
+      fetchSkiWeather(true);
+      if (leafletMap) {
+        leafletMap.setView([preset.lat, preset.lng], 16);
+        initOrRefreshMap();
+      }
+      showToast(`주력 스키장이 [${preset.fullName}]으로 전환되었습니다.`);
     }
+
+    function startNextSeasonWizard() {
+      const nextTitle = prompt('새로 시작할 시즌 제목을 입력하세요 (예: 27/28 스키 시즌 정복):', '27/28 스키 시즌 정복');
+      if (!nextTitle) return;
+
+      // 올해 기록 아카이브 보관
+      state.archivedSeasons.push({
+        season: state.seasonLabel,
+        archivedAt: new Date().toISOString().slice(0, 10),
+        diaries: state.diaries,
+        expenses: state.expenses,
+        schedules: state.schedules
+      });
+
+      // 새 시즌 초기화 (아이들 레벨 & 장비 스펙 & GAS URL은 그대로 계승)
+      state.seasonLabel = nextTitle.trim();
+      state.schedules = {};
+      state.expenses = [];
+      state.diaries = [];
+      state.preSeasonFixedSpend = 0;
+      state.benefitList.forEach(b => b.used = 0);
+      state.unlimitedBenefits.oceanworld.used = 0;
+      state.unlimitedBenefits.cablecar.used = 0;
+
+      saveState();
+      closeSettingsModal();
+      initRenderAll();
+      showToast(`🎉 [${state.seasonLabel}] 새 시즌이 세팅되었습니다!`);
+    }
+
+    function applyHeaderLabels() {
+      const resort = getCurrentResort();
+      document.getElementById('headerSeasonTitle').textContent = state.seasonLabel || '26/27 스키 시즌 정복';
+      document.getElementById('headerResortBadge').textContent = resort.shortName;
+    }
+
     async function saveGasUrlAndSync() {
       state.gasUrl = document.getElementById('gasUrlInput').value.trim();
       saveState(false);
       closeSettingsModal();
       if (state.gasUrl) await pushToGasCloud();
     }
+
     async function pushToGasCloud() {
       if (!state.gasUrl) return;
       document.getElementById('syncText').textContent = '동기화중';
@@ -1643,6 +2035,7 @@
         document.getElementById('syncText').textContent = '로컬저장';
       }
     }
+
     async function pullFromGasCloud() {
       if (!state.gasUrl) return;
       try {
@@ -1655,27 +2048,31 @@
         }
       } catch (e) {}
     }
+
     function exportBackupJson() {
       navigator.clipboard?.writeText(JSON.stringify(state, null, 2));
       showToast('백업 JSON이 클립보드에 복사되었습니다.');
     }
 
     // =========================================================================
-    // 8. 앱 부트스트랩 초기화
+    // 9. 앱 부트스트랩 초기화
     // =========================================================================
     function initRenderAll() {
       const today = new Date().toISOString().slice(0, 10);
       document.getElementById('expDate').value = today;
       document.getElementById('diaryDate').value = today;
 
+      applyHeaderLabels();
       renderArrivalPredictor();
       renderSlopeGuide();
+      renderMapPoiButtons();
       renderCrewSelector();
       renderCalendar();
       renderGearSpecs();
       renderChecklist();
       renderBenefits();
       renderBudget();
+      renderDiarySlopeChips();
       renderCharBadgeAwardChips();
       renderGrowthAndBadges();
       lucide.createIcons();
