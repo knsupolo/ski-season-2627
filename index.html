@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>스키 시즌 정복 v6.1 | 4인 가족 스키 작전본부</title>
+  <title>스키 시즌 정복 v6.2 | 4인 가족 스키 작전본부</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
@@ -19,7 +19,6 @@
       --text-main: #f8fafc; --text-sub: #cbd5e1; --text-muted: #94a3b8; --accent: #38bdf8; --accent-contrast: #090d16;
       --ticker-bg: rgba(15, 23, 42, 0.95); --ticker-text: #7dd3fc;
     }
-    /* 기본 5종 테마 */
     body[data-theme="navy"] {
       --bg-body: #090d16; --bg-header: rgba(9, 13, 22, 0.95); --bg-card: rgba(15, 23, 42, 0.92);
       --bg-sub: #0f172a; --bg-input: #020617; --border-main: rgba(56, 189, 248, 0.25); --border-sub: #1e293b;
@@ -50,8 +49,6 @@
       --text-main: #f8fafc; --text-sub: #e2e8f0; --text-muted: #94a3b8; --accent: #818cf8; --accent-contrast: #ffffff;
       --ticker-bg: #161923; --ticker-text: #a5b4fc;
     }
-
-    /* 추가 멀티 컬러 믹스 5종 테마 (메뉴·배경·포인트 다중 배색) */
     body[data-theme="mintcoral"] {
       --bg-body: #07191c; --bg-header: rgba(11, 37, 40, 0.96); --bg-card: rgba(17, 50, 54, 0.92);
       --bg-sub: #0d2b2f; --bg-input: #051214; --border-main: rgba(251, 113, 133, 0.35); --border-sub: #1b494f;
@@ -107,7 +104,7 @@
     #vivaldiMap { height: 270px; width: 100%; border-radius: 0.75rem; z-index: 10; }
     .leaflet-container { background: #0f172a; }
 
-    /* 가로 무한 흐름 운영시간 전광판 티커 */
+    /* 가로 무한 흐름 스키장 운영·정설시간 전광판 티커 */
     .marquee-wrap {
       background-color: var(--ticker-bg);
       color: var(--ticker-text);
@@ -118,7 +115,7 @@
     .marquee-track {
       display: inline-block;
       padding-left: 100%;
-      animation: skiMarquee 24s linear infinite;
+      animation: skiMarquee 26s linear infinite;
     }
     .marquee-wrap:active .marquee-track,
     .marquee-wrap:hover .marquee-track {
@@ -153,12 +150,12 @@
     </button>
   </div>
 
-  <!-- 상단 고정 헤더 (1줄: 제목+우측상단 유틸리티 / 2줄: 얼굴 아바타 프로필 / 3줄: 운영·정설시간 티커) -->
+  <!-- 상단 고정 헤더 -->
   <header class="sticky top-0 z-40 theme-header">
     <div class="max-w-5xl mx-auto px-3.5 md:px-6 pt-2.5 pb-2 space-y-2">
-      <!-- 1번째 줄: 좌측 제목 & 우측 상단 끝(펼침/접기 · 동기화 · 설정) 밀착 정렬 -->
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center space-x-2 min-w-0">
+      <!-- 1번째 줄: 제목 & 우측 상단(펼침/접기 · 클라우드 동기화 · 설정) -->
+      <div class="flex items-center justify-between gap-1.5">
+        <div class="flex items-center space-x-1.5 min-w-0">
           <button onclick="switchMainTab('home')" class="w-8 h-8 rounded-xl bg-t-accent flex items-center justify-center shadow-md shrink-0 active:scale-95">
             <i data-lucide="snowflake" class="w-4 h-4"></i>
           </button>
@@ -169,26 +166,25 @@
           <span id="headerResortBadge" class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30 shrink-0">비발디</span>
         </div>
 
-        <!-- 우측 상단 고정 유틸리티 버튼 그룹 -->
+        <!-- 우측 상단 유틸리티 그룹 (수동 클라우드 동기화 버튼 포함) -->
         <div class="flex items-center space-x-1 shrink-0">
           <button onclick="toggleAllAccordionsInCurrentTab()" class="px-2 py-1.5 rounded-lg sub-box text-[10px] font-bold text-t-sub active:scale-95">
             펼침/접기
           </button>
-          <div id="syncBadge" class="hidden sm:flex items-center space-x-1 px-2 py-1.5 rounded-lg sub-box text-[10px] font-bold text-emerald-400">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span id="syncText">저장됨</span>
-          </div>
+          <button onclick="manualForceSyncNow()" id="syncBadge" class="flex items-center space-x-1 px-2 py-1.5 rounded-lg sub-box text-[10px] font-bold text-emerald-400 active:scale-95" title="터치하여 지금 클라우드 동기화">
+            <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span id="syncText">동기화</span>
+          </button>
           <button onclick="openSettingsModal()" aria-label="설정" class="w-8 h-8 rounded-lg sub-box flex items-center justify-center text-t-sub hover:text-t-accent active:scale-95 transition">
             <i data-lucide="settings" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
-      <!-- 2번째 줄: 가족 4인 얼굴 아이콘 프로필 바 + 아이패드/PC 상단 5탭 바 -->
+      <!-- 2번째 줄: 가족 4인 얼굴 아바타 프로필 바 + 아이패드/PC 상단 5탭 바 -->
       <div class="flex items-center justify-between gap-2">
         <div id="headerProfileChips" class="flex items-center space-x-1.5 overflow-x-auto hide-scrollbar py-0.5"></div>
 
-        <!-- 아이패드·PC 전용 상단 5탭 바 -->
         <nav class="hidden md:flex items-center space-x-1 sub-box p-1 rounded-xl shrink-0">
           <button onclick="switchMainTab('home')" id="desk-nav-home" class="desk-nav-btn px-2.5 py-1.5 rounded-lg text-xs font-black bg-t-accent flex items-center space-x-1">
             <i data-lucide="home" class="w-3.5 h-3.5"></i><span>홈</span>
@@ -209,10 +205,10 @@
       </div>
     </div>
 
-    <!-- 3번째 줄: 평일/주말 스키장 개장시간 & 정설(재설)시간 가로 흐름 전광판 티커 -->
+    <!-- 3번째 줄: 비발디파크 스키장 전용 공식 오픈·운영·정설시간 티커 (스노위랜드 제외) -->
     <div class="marquee-wrap py-1 text-[11px] font-bold">
       <div id="resortHoursMarqueeText" class="marquee-track">
-        ⛷️ [비발디파크 운영시간] 평일(월~목): 주간 09:00~16:30 · 정설(재설)시간 16:30~18:30 · 야간/심야 18:30~03:00 &nbsp;&nbsp;|&nbsp;&nbsp; 🏔️ 주말(금~일·공휴일): 주간 09:00~16:30 · 정설(재설)시간 16:30~18:30 · 야간/밤샘 18:30~04:00
+        ⛷️ [비발디파크 스키장] 11/27(금) 오픈 · 운영시간 09:00~23:00 · 정설시간 17:30~19:00 · 오픈슬로프: 발라드(09시), 재즈·테크노(12시) · 심야스키(23:00~03:00) 12/18(금) 오픈
       </div>
     </div>
   </header>
@@ -221,11 +217,11 @@
   <main class="max-w-lg md:max-w-5xl mx-auto px-3.5 md:px-6 pt-4">
 
     <!-- ========================================================= -->
-    <!-- TAB 0: 슬림 & 여백 중심 홈 대시보드 (윈터시즌 히어로 + 한줄중요공지 + 퀵시즌권 + 하단 미니연락처) -->
+    <!-- TAB 0: 슬림 홈 대시보드 (히어로 + 다음 출격 3건 + 슬로프 3일 기상 + 퀵시즌권 + 1줄공지 + 미니연락처) -->
     <!-- ========================================================= -->
     <section id="tab-home" class="tab-panel space-y-4">
 
-      <!-- [유일 기본 펼침] 26/27 WINTER SEASON 히어로 카드 (우측 상단 차량·가이드맵 미니 아이콘) -->
+      <!-- 1. 26/27 WINTER SEASON 히어로 카드 -->
       <div class="glass-card rounded-3xl p-5 shadow-xl">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">26/27 WINTER SEASON</span>
@@ -242,8 +238,8 @@
 
         <div class="flex items-end justify-between mt-3">
           <div>
-            <p id="openingDateLabel" class="text-xs font-bold text-t-muted">홍천 비발디파크 · 개장 2026-11-28</p>
-            <h2 id="openingDdayHero" class="text-3xl font-black text-t-main mt-1 tracking-tight">개장 D-2</h2>
+            <p id="openingDateLabel" class="text-xs font-bold text-t-muted">홍천 비발디파크 · 오픈 2026-11-27</p>
+            <h2 id="openingDdayHero" class="text-3xl font-black text-t-main mt-1 tracking-tight">🎉 오늘 개장 D-DAY!</h2>
           </div>
           <div class="text-right">
             <span class="text-[10px] text-t-muted block">가족 시즌 출격</span>
@@ -251,20 +247,26 @@
           </div>
         </div>
 
-        <!-- 심플 추천 위젯 2종: 다음 출격 카운트다운 + 오늘의 한 줄 설질 브리핑 -->
-        <div class="grid grid-cols-2 gap-2.5 mt-4 pt-3.5 border-t border-slate-700/30 text-xs">
-          <button onclick="switchMainTab('gear')" class="p-3 rounded-2xl sub-box text-left active:scale-95 transition">
-            <span class="text-[10px] font-bold text-t-muted block">📅 다음 예정 출격</span>
-            <strong id="homeNextTripChip" class="text-xs font-black text-t-main mt-0.5 block truncate">일정 등록 대기</strong>
-          </button>
-          <button onclick="switchMainTab('ops')" class="p-3 rounded-2xl sub-box text-left active:scale-95 transition">
-            <span class="text-[10px] font-bold text-t-muted block">❄️ 오늘 슬로프 기상</span>
-            <strong id="homeMiniWeatherChip" class="text-xs font-black text-t-accent mt-0.5 block truncate">기상 확인중...</strong>
-          </button>
+        <!-- 홈 위젯 A: 다음 예정 출격일 최대 3개 -->
+        <div class="mt-4 pt-3.5 border-t border-slate-700/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-black text-t-sub">📅 다음 예정 출격 일정 (최대 3건)</span>
+            <button onclick="switchMainTab('gear')" class="text-[10px] font-bold text-t-accent underline">캘린더 전체보기</button>
+          </div>
+          <div id="homeNextTripsList" class="space-y-1.5"></div>
+        </div>
+
+        <!-- 홈 위젯 B: 슬로프 기상상태 오늘 포함 3일 예보 -->
+        <div class="mt-3.5 pt-3.5 border-t border-slate-700/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-black text-t-sub">❄️ 슬로프 기상 예보 (오늘 · 내일 · 모레)</span>
+            <button onclick="switchMainTab('ops')" class="text-[10px] font-bold text-t-accent underline">상세 설질</button>
+          </div>
+          <div id="homeThreeDayWeatherGrid" class="grid grid-cols-3 gap-2"></div>
         </div>
       </div>
 
-      <!-- 추천 위젯 3: 4인 시즌패스 바코드 0.5초 퀵 오픈 바 -->
+      <!-- 2. 4인 시즌패스 바코드 0.5초 퀵 오픈 바 -->
       <div class="glass-card rounded-2xl p-3.5 shadow-lg">
         <div class="flex items-center justify-between mb-2">
           <span class="text-[11px] font-black text-t-sub flex items-center space-x-1.5">
@@ -276,12 +278,12 @@
         <div id="homeQuickPassBar" class="grid grid-cols-4 gap-2"></div>
       </div>
 
-      <!-- [접이식] 공지사항 카드: 평상시에는 '메인 중요 공지 1줄'만 노출, 터치 시 전체 공지 관리 열림 -->
+      <!-- 3. 공지사항 (평상시 메인 중요공지 1줄만 표시, 터치 시 전체 펼침) -->
       <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
         <button type="button" onclick="toggleAccordion('acc-home-notice')" class="w-full px-4 py-3 flex items-center justify-between text-left">
           <div class="flex items-center space-x-2 min-w-0 pr-2">
             <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-black shrink-0">중요공지</span>
-            <span id="homeMainPinnedNoticeText" class="text-xs font-bold text-t-main truncate">정설 시간(16:30~18:30) 전 슬로프 리프트 운행 중단</span>
+            <span id="homeMainPinnedNoticeText" class="text-xs font-bold text-t-main truncate">정설 시간(17:30~19:00) 전 슬로프 리프트 운행 중단</span>
           </div>
           <i data-lucide="chevron-down" id="icon-acc-home-notice" class="w-4 h-4 text-t-muted shrink-0 transition-transform"></i>
         </button>
@@ -301,8 +303,8 @@
         </div>
       </div>
 
-      <!-- 홈 화면 최하단 푸터: 미니 고객센터 전화 아이콘 4종 + 작은 주소 표기 -->
-      <footer class="pt-2 pb-4 space-y-2.5">
+      <!-- 4. 홈 최하단 푸터: 미니 고객센터 전화 아이콘 4종 + 작은 주소 표기 -->
+      <footer class="pt-1 pb-4 space-y-2.5">
         <div class="grid grid-cols-4 gap-2">
           <a href="tel:033-439-8490" class="py-2.5 px-1 rounded-2xl glass-card flex flex-col items-center justify-center space-y-1 active:scale-95">
             <i data-lucide="ticket" class="w-4 h-4 text-sky-400"></i>
@@ -452,11 +454,10 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- TAB 2: 일정·장비 (준비물 체크리스트 삭제, 캘린더 + 주력 장비 집중) -->
+    <!-- TAB 2: 일정·장비 -->
     <!-- ========================================================= -->
     <section id="tab-gear" class="tab-panel hidden grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
 
-      <!-- 좌측 컬럼: 출격 캘린더 & 선택일 출발/도착 타임로그 -->
       <div class="glass-card rounded-2xl p-4 shadow-xl">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center space-x-2">
@@ -510,7 +511,6 @@
         <div id="upcomingScheduleList" class="mt-3 pt-2.5 border-t border-slate-700/30 space-y-1.5"></div>
       </div>
 
-      <!-- 우측 컬럼: 4인 가족 주력 장비 스펙 -->
       <div class="glass-card rounded-2xl p-4 shadow-xl space-y-2.5">
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2">
@@ -525,7 +525,7 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- TAB 3: 혜택·가계부 (다자녀 톨비 20% 정정 + '기타' 지출 항목 추가) -->
+    <!-- TAB 3: 혜택·가계부 -->
     <!-- ========================================================= -->
     <section id="tab-benefits" class="tab-panel hidden grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
 
@@ -587,7 +587,6 @@
         </div>
       </div>
 
-      <!-- 우측 컬럼: 주행거리 + 유류·다자녀 20% 톨비 계산기 + 가계부(기타 포함) -->
       <div class="space-y-3.5">
         <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
           <button type="button" onclick="toggleAccordion('acc-budget')" class="w-full px-4 py-3.5 flex items-center justify-between text-left">
@@ -622,7 +621,6 @@
                 </div>
               </div>
 
-              <!-- 카니발 하이브리드 유류비 + 주말·공휴일 다자녀 20% 톨비 감면 원터치 기입 -->
               <div class="pt-2 border-t border-slate-700/30 space-y-1.5">
                 <p id="fuelTollCalcInfo" class="text-[10px] text-t-muted"></p>
                 <p class="text-[9px] text-t-muted">※ 3자녀 이상 20% 할인 (토·일·법정공휴일 재정고속도로 한정, ~2029.08.21)</p>
@@ -696,11 +694,10 @@
     </section>
 
     <!-- ========================================================= -->
-    <!-- TAB 4: 성장·뱃지 (건당 누적 & 5개마다 레벨업 진화 뱃지 + 일기 취소/삭제) -->
+    <!-- TAB 4: 성장·뱃지 -->
     <!-- ========================================================= -->
     <section id="tab-growth" class="tab-panel hidden grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
 
-      <!-- 좌측 컬럼: 자녀별 누적 뱃지 진열장 (5개마다 Lv.1 -> Lv.2 -> Lv.3 진화) -->
       <div class="glass-card rounded-2xl p-4 shadow-xl">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center space-x-2">
@@ -729,7 +726,6 @@
         <div id="kidBadgesGrid" class="grid grid-cols-3 gap-2"></div>
       </div>
 
-      <!-- 우측 컬럼: 귀가 후 일기 쓰기(저장 + 취소) & 지난 일기 피드(개별 취소/삭제) -->
       <div class="space-y-3.5">
         <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
           <button type="button" onclick="toggleAccordion('acc-diary-form')" class="w-full px-4 py-3.5 flex items-center justify-between text-left">
@@ -804,7 +800,6 @@
               <textarea id="diaryNote" rows="2" placeholder="아이들 성장 모습, 서로 챙겨준 에피소드 기록" class="w-full input-box rounded-xl px-3 py-2 text-xs"></textarea>
             </div>
 
-            <!-- 저장 + 취소 버튼 나란히 배치 -->
             <div class="grid grid-cols-3 gap-2">
               <button type="button" onclick="cancelDiaryForm()" class="touch-btn rounded-xl sub-box text-t-sub font-black text-xs active:scale-95">
                 작성 취소
@@ -864,9 +859,7 @@
     </div>
   </nav>
 
-  <!-- ========================================================= -->
-  <!-- 차량 & 타이어·연비 설정 팝업 모달 (홈 아이콘에서 바로 열림) -->
-  <!-- ========================================================= -->
+  <!-- 차량 & 타이어·연비 설정 팝업 모달 -->
   <div id="vehicleModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="glass-card rounded-2xl max-w-sm w-full p-5 space-y-3.5 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-700/40 pb-2.5">
@@ -903,9 +896,7 @@
     </div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- 가족 개별 시즌권 & 스키 프로필 모달 (1/6 대형 사진 + 바코드 팝업 + 12장 앨범) -->
-  <!-- ========================================================= -->
+  <!-- 가족 개별 시즌권 & 스키 프로필 모달 -->
   <div id="profileModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="glass-card rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-700/40 pb-3">
@@ -922,7 +913,6 @@
 
       <div class="p-3.5 rounded-xl sub-box space-y-3">
         <div class="flex items-stretch space-x-3.5">
-          <!-- 화면 약 1/6 면적 대형 세로형 프로필 사진 -->
           <div class="relative w-28 sm:w-32 h-36 rounded-2xl overflow-hidden input-box flex items-center justify-center shrink-0 border-2 border-sky-500/40 shadow-lg">
             <img id="profAvatarImg" src="" class="hidden w-full h-full object-cover object-top cursor-pointer" onclick="openLightboxPhoto(this.src)" />
             <i id="profAvatarPlaceholder" data-lucide="user" class="w-10 h-10 text-t-muted"></i>
@@ -1026,7 +1016,7 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- 설정 모달 (10종 테마 + 제목/스키장 + 운영시간 수정 + 아카이브 + 파일 백업/복원) -->
+  <!-- 설정 모달 (10종 테마 + 아카이브 + 자동 스냅샷 되돌리기 + 백업/복원 + 동기화) -->
   <!-- ========================================================= -->
   <div id="settingsModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="glass-card rounded-2xl max-w-md w-full p-5 space-y-3.5 shadow-2xl my-auto max-h-[90vh] overflow-y-auto">
@@ -1040,7 +1030,7 @@
         </button>
       </div>
 
-      <!-- 1. 총 10종 UI 테마 선택 (기본 5종 + 멀티 컬러 믹스 5종) -->
+      <!-- 1. 10종 UI 테마 선택 -->
       <div class="p-3 rounded-xl sub-box space-y-2">
         <label class="text-[11px] font-black text-t-accent block">1) 고시인성 UI 테마 선택 (10종)</label>
         <div class="grid grid-cols-5 gap-1.5">
@@ -1050,7 +1040,6 @@
           <button onclick="applyUiTheme('sunset')" data-th="sunset" class="th-btn py-2 px-1 rounded-xl border text-center text-[10px] font-black bg-[#22150f] text-amber-300 border-amber-500/40">선셋</button>
           <button onclick="applyUiTheme('nordic')" data-th="nordic" class="th-btn py-2 px-1 rounded-xl border text-center text-[10px] font-black bg-[#1a1d27] text-indigo-300 border-indigo-500/40">노르딕</button>
         </div>
-        <p class="text-[10px] font-bold text-t-muted pt-0.5">✨ 멀티 컬러 믹스 테마 (메뉴·포인트 혼합 배색)</p>
         <div class="grid grid-cols-5 gap-1.5">
           <button onclick="applyUiTheme('mintcoral')" data-th="mintcoral" class="th-btn py-2 px-1 rounded-xl border text-center text-[10px] font-black bg-[#0b2528] text-rose-300 border-teal-400">민트코랄</button>
           <button onclick="applyUiTheme('royalgold')" data-th="royalgold" class="th-btn py-2 px-1 rounded-xl border text-center text-[10px] font-black bg-[#0d1b3e] text-yellow-300 border-blue-400">로열골드</button>
@@ -1060,6 +1049,7 @@
         </div>
       </div>
 
+      <!-- 2. 제목 & 주력 스키장 -->
       <div class="p-3 rounded-xl sub-box space-y-2">
         <label class="text-[11px] font-black text-emerald-400 block">2) 앱 제목 & 주력 스키장</label>
         <div class="flex space-x-1.5">
@@ -1076,31 +1066,42 @@
         </select>
       </div>
 
+      <!-- 3. 지난 시즌 열람/복원 & 새 시즌 시작 -->
       <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
-        <label class="text-[11px] font-black text-amber-400 block">3) 시즌 아카이브 열람 & 새 시즌 시작</label>
+        <label class="text-[11px] font-black text-amber-400 block">3) 지난 시즌 열람 · 되돌리기 & 새 시즌 시작</label>
+        <p class="text-[10px] text-t-muted">※ 시즌 종료 후 새 시즌 시작을 누르면 올해 기록이 아래에 보관되며, 실수로 눌렀을 때는 [현재 시즌으로 되돌리기]로 원상복구할 수 있습니다.</p>
         <div id="archivedSeasonListBox" class="space-y-1.5"></div>
         <button onclick="startNextSeasonWizard()" class="w-full py-2.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs active:scale-95">
           ✨ 올해 마감하고 새 시즌 시작하기
         </button>
       </div>
 
+      <!-- 4. 실수 복구(자동 타임머신 스냅샷) & 파일 백업/복원 -->
       <div class="p-3 rounded-xl sub-box space-y-2">
-        <label class="text-[11px] font-black text-t-main block">4) 전체 데이터 파일 백업 & 복원 (.json)</label>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="downloadFullBackupFile()" class="py-2.5 rounded-xl bg-t-accent font-black text-xs flex items-center justify-center space-x-1 active:scale-95">
+        <label class="text-[11px] font-black text-t-main block">4) 실수 복구(자동 스냅샷) & 백업 파일</label>
+        <button onclick="restoreFromAutoSnapshot()" class="w-full py-2 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 font-black text-xs flex items-center justify-center space-x-1 active:scale-95">
+          <i data-lucide="history" class="w-3.5 h-3.5"></i>
+          <span id="undoSnapshotBtnLabel">직전 작업 상태로 되돌리기 (스냅샷 0개)</span>
+        </button>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button onclick="downloadFullBackupFile()" class="py-2 rounded-xl bg-t-accent font-black text-xs flex items-center justify-center space-x-1 active:scale-95">
             <i data-lucide="download" class="w-3.5 h-3.5"></i><span>백업 파일 저장</span>
           </button>
-          <button onclick="document.getElementById('restoreBackupFileInput').click()" class="py-2.5 rounded-xl input-box font-black text-xs flex items-center justify-center space-x-1 active:scale-95">
+          <button onclick="document.getElementById('restoreBackupFileInput').click()" class="py-2 rounded-xl input-box font-black text-xs flex items-center justify-center space-x-1 active:scale-95">
             <i data-lucide="upload" class="w-3.5 h-3.5"></i><span>백업 파일 복원</span>
           </button>
           <input id="restoreBackupFileInput" type="file" accept=".json" class="hidden" onchange="handleRestoreBackupFile(event)" />
         </div>
       </div>
 
+      <!-- 5. 구글 스프레드시트 실시간 동기화 -->
       <div class="p-3 rounded-xl sub-box space-y-2">
-        <label class="text-[11px] font-black text-t-muted block">5) Google Apps Script 동기화 URL</label>
-        <input id="gasUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full input-box rounded-xl px-3 py-2 text-xs" />
-        <button onclick="saveGasUrlAndSync()" class="w-full py-2 rounded-xl bg-slate-700 text-white font-black text-xs active:scale-95">URL 저장 및 동기화</button>
+        <label class="text-[11px] font-black text-emerald-400 block">5) 구글 시트 클라우드 실시간 동기화</label>
+        <input id="gasUrlInput" type="url" class="w-full input-box rounded-xl px-3 py-2 text-[11px]" />
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="pullFromGasCloud(true)" class="py-2 rounded-xl bg-sky-500 text-slate-950 font-black text-xs active:scale-95">☁️ 시트에서 불러오기</button>
+          <button onclick="saveGasUrlAndSync()" class="py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs active:scale-95">📤 시트로 내보내기</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1144,9 +1145,12 @@
 
   <script>
     // =========================================================================
-    // 1. 안전 스토리지 & 마스터 데이터 (v6.1)
+    // 1. 기본 GAS URL 내장 & 안전 스토리지 & 자동 스냅샷 엔진 (v6.2)
     // =========================================================================
-    const STORAGE_KEY = 'VIVALDI_2627_FAMILY_SKI_APP_V61';
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyxz_f7IDUyKD6kBcRuRNhygIrbe0Sls40q2Jb4VbT0kpZGJ4Y78DBjpm6zheZJqt3_q/exec';
+    const STORAGE_KEY = 'VIVALDI_2627_FAMILY_SKI_APP_V62';
+    const SNAPSHOT_KEY = 'VIVALDI_2627_AUTO_SNAPSHOTS';
+
     const memStore = {};
     const safeStorage = {
       get(k) { try { return window.localStorage.getItem(k); } catch (e) { return memStore[k] || null; } },
@@ -1157,7 +1161,7 @@
       vivaldi: {
         id: 'vivaldi', shortName: '비발디', fullName: '홍천 비발디파크',
         lat: 37.6481, lng: 127.6819, roundTripKm: 220, roundTripTollFull: 11200,
-        hoursTicker: '⛷️ [비발디파크 운영시간] 평일(월~목): 주간 09:00~16:30 · 정설(재설)시간 16:30~18:30 · 야간/심야 18:30~03:00   |   🏔️ 주말(금~일·공휴일): 주간 09:00~16:30 · 정설(재설)시간 16:30~18:30 · 야간/밤샘 18:30~04:00',
+        hoursTicker: '⛷️ [비발디파크 스키장] 11/27(금) 오픈 · 운영시간 09:00~23:00 · 정설시간 17:30~19:00 · 오픈슬로프: 발라드(09시), 재즈·테크노(12시) · 심야스키(23:00~03:00) 12/18(금) 오픈',
         slopes: ['발라드(초급)', '블루스(초중급)', '재즈(중급)', '힙합(중급)', '테크노(상급)', '펑키(상급)', '락(최상급)', '스노위랜드'],
         slopeDetails: [
           { lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: '발라드 (경사 5~7°)', desc: '폭이 넓고 완만한 메인 초급 코스. 하은(초1) 첫 리프트 및 A자 제동 연습 최적' },
@@ -1178,7 +1182,7 @@
       gonjiam: {
         id: 'gonjiam', shortName: '곤지암', fullName: '광주 곤지암리조트',
         lat: 37.3368, lng: 127.2951, roundTripKm: 76, roundTripTollFull: 4200,
-        hoursTicker: '⛷️ [곤지암리조트 운영시간] 주간 09:00~17:00 · 정설시간 17:00~19:00 · 야간 19:00~02:00 (금·토 04:00)',
+        hoursTicker: '⛷️ [곤지암리조트 스키장] 주간 09:00~17:00 · 정설시간 17:00~19:00 · 야간 19:00~02:00 (금·토 04:00)',
         slopes: ['휘센(초급)', '제타1(초중급)', '윈디(중급)', '씽크(상급)'],
         slopeDetails: [{ lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: '휘센 (초급)', desc: '완만하고 넓은 입문자 전용 슬로프' }],
         pois: [{ key: 'main', label: '스키하우스', lat: 37.3368, lng: 127.2951, desc: '메인 매표소 · 장비보관소' }]
@@ -1186,7 +1190,7 @@
       jisan: {
         id: 'jisan', shortName: '지산', fullName: '이천 지산포레스트',
         lat: 37.2173, lng: 127.3446, roundTripKm: 64, roundTripTollFull: 3600,
-        hoursTicker: '⛷️ [지산포레스트 운영시간] 주간 09:00~17:00 · 정설시간 17:00~18:30 · 야간/심야 18:30~04:00',
+        hoursTicker: '⛷️ [지산포레스트 스키장] 주간 09:00~17:00 · 정설시간 17:00~18:30 · 야간/심야 18:30~04:00',
         slopes: ['레몬(초급)', '오렌지(초중급)', '뉴오렌지(중급)', '실버(상급)'],
         slopeDetails: [{ lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: '레몬 (1번 초급)', desc: '무빙워크 및 초보자 안전 연습 구간' }],
         pois: [{ key: 'main', label: '메인콘도', lat: 37.2173, lng: 127.3446, desc: '매표소 및 식당가' }]
@@ -1194,7 +1198,7 @@
       wellihilli: {
         id: 'wellihilli', shortName: '웰리힐리', fullName: '횡성 웰리힐리파크',
         lat: 37.4859, lng: 128.2481, roundTripKm: 250, roundTripTollFull: 12400,
-        hoursTicker: '⛷️ [웰리힐리파크 운영시간] 주간 09:00~16:30 · 정설시간 16:30~18:30 · 야간/심야 18:30~02:00',
+        hoursTicker: '⛷️ [웰리힐리파크 스키장] 주간 09:00~16:30 · 정설시간 16:30~18:30 · 야간/심야 18:30~02:00',
         slopes: ['A1(초급)', 'B1(초중급)', 'C1(중급)', 'E1(상급)'],
         slopeDetails: [{ lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: 'A1 · A2 (초급)', desc: '가족 입문용 광폭 슬로프' }],
         pois: [{ key: 'main', label: '스키하우스', lat: 37.4859, lng: 128.2481, desc: '메인 슬로프 베이스' }]
@@ -1202,7 +1206,7 @@
       yongpyong: {
         id: 'yongpyong', shortName: '용평', fullName: '평창 용평리조트',
         lat: 37.6436, lng: 128.6806, roundTripKm: 370, roundTripTollFull: 19600,
-        hoursTicker: '⛷️ [용평리조트 운영시간] 주간 09:00~17:00 · 정설시간 17:00~19:00 · 야간/심야 19:00~02:30',
+        hoursTicker: '⛷️ [용평리조트 스키장] 주간 09:00~17:00 · 정설시간 17:00~19:00 · 야간/심야 19:00~02:30',
         slopes: ['옐로우(초급)', '핑크(초중급)', '레드파라다이스(중급)', '골드(상급)'],
         slopeDetails: [{ lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: '옐로우 (초급)', desc: '초보자 전용 완만 코스' }],
         pois: [{ key: 'main', label: '드래곤프라자', lat: 37.6436, lng: 128.6806, desc: '메인 매표소 및 식당가' }]
@@ -1210,7 +1214,7 @@
       high1: {
         id: 'high1', shortName: '하이원', fullName: '정선 하이원리조트',
         lat: 37.2067, lng: 128.8385, roundTripKm: 430, roundTripTollFull: 23400,
-        hoursTicker: '⛷️ [하이원리조트 운영시간] 주간 09:00~16:00 · 정설시간 16:00~18:00 · 야간 18:00~22:00',
+        hoursTicker: '⛷️ [하이원리조트 스키장] 주간 09:00~16:00 · 정설시간 16:00~18:00 · 야간 18:00~22:00',
         slopes: ['제우스2(초급)', '아테나2(초중급)', '헤라2(중급)', '빅토리아(상급)'],
         slopeDetails: [{ lv: '초급', cls: 'bg-emerald-500/20 text-emerald-400', name: '제우스 2 (초급 4.2km)', desc: '정상에서 내려오는 국내 최장 초급 코스' }],
         pois: [{ key: 'main', label: '밸리허브', lat: 37.2067, lng: 128.8385, desc: '곤돌라 및 리프트 중심 거점' }]
@@ -1237,10 +1241,11 @@
     const todayIsoGlobal = `${nowDateObj.getFullYear()}-${String(nowDateObj.getMonth() + 1).padStart(2, '0')}-${String(nowDateObj.getDate()).padStart(2, '0')}`;
 
     const INITIAL_STATE = {
-      gasUrl: '',
+      gasUrl: DEFAULT_GAS_URL,
+      lastUpdatedTs: 0,
       uiTheme: 'navy',
       seasonLabel: '26/27 스키 시즌 정복',
-      openingDate: '2026-11-28',
+      openingDate: '2026-11-27', // 비발디파크 26/27 공식 오픈일
       resortId: 'vivaldi',
       currentTab: 'home',
       dayType: 'weekend',
@@ -1279,10 +1284,9 @@
       unlimitedBenefits: { oceanworld: { used: 0 }, cablecar: { used: 0 } },
       expenses: [],
       diaries: [],
-      // 자녀별 인성 뱃지 건당 누적 카운트 맵: { '하민': { c1: 2, c2: 5 }, ... }
       charBadgeCounts: { '하민': {}, '하준': {}, '하은': {} },
       homeNotices: [
-        { id: 'n1', text: '정설 시간(16:30~18:30) 전 슬로프 리프트 운행 중단', pinned: true },
+        { id: 'n1', text: '정설 시간(17:30~19:00) 전 슬로프 리프트 운행 중단 · 심야스키 12/18(금) 오픈', pinned: true },
         { id: 'n2', text: '헬멧 미착용 시 슬로프 및 리프트 탑승 절대 불가', pinned: false }
       ],
       nextSeasonMemos: [
@@ -1305,11 +1309,13 @@
     let currentEditingProfileId = '아빠';
 
     function loadState() {
-      const raw = safeStorage.get(STORAGE_KEY) || safeStorage.get('VIVALDI_2627_FAMILY_SKI_APP_V6');
+      const raw = safeStorage.get(STORAGE_KEY)
+        || safeStorage.get('VIVALDI_2627_FAMILY_SKI_APP_V61')
+        || safeStorage.get('VIVALDI_2627_FAMILY_SKI_APP_V6')
+        || safeStorage.get('VIVALDI_2627_FAMILY_SKI_APP_V5');
       if (!raw) return JSON.parse(JSON.stringify(INITIAL_STATE));
       try {
         const p = JSON.parse(raw);
-        // 구버전 배열 형태 manualCharBadges 마이그레이션 호환
         const migratedCounts = { '하민': {}, '하준': {}, '하은': {} };
         ['하민', '하준', '하은'].forEach(k => {
           if (p.charBadgeCounts && p.charBadgeCounts[k]) {
@@ -1326,6 +1332,7 @@
         return {
           ...JSON.parse(JSON.stringify(INITIAL_STATE)),
           ...p,
+          gasUrl: p.gasUrl || DEFAULT_GAS_URL,
           currentTab: 'home',
           charBadgeCounts: migratedCounts,
           homeNotices: notices,
@@ -1343,6 +1350,36 @@
       } catch (e) {
         return JSON.parse(JSON.stringify(INITIAL_STATE));
       }
+    }
+
+    // 자동 타임머신 스냅샷 저장 (실수 복구용 최근 5개 보관)
+    function pushAutoSnapshot(reasonLabel) {
+      try {
+        const list = JSON.parse(safeStorage.get(SNAPSHOT_KEY) || '[]');
+        list.unshift({
+          savedAt: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          reason: reasonLabel || '자동 저장',
+          data: JSON.stringify(state)
+        });
+        if (list.length > 5) list.length = 5;
+        safeStorage.set(SNAPSHOT_KEY, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function restoreFromAutoSnapshot() {
+      const list = JSON.parse(safeStorage.get(SNAPSHOT_KEY) || '[]');
+      if (list.length === 0) return showToast('복구할 직전 스냅샷이 없습니다.');
+      const latest = list[0];
+      if (!confirm(`[${latest.savedAt} - ${latest.reason}] 직전 상태로 되돌리시겠습니까?`)) return;
+      state = JSON.parse(latest.data);
+      list.shift();
+      safeStorage.set(SNAPSHOT_KEY, JSON.stringify(list));
+      viewingArchiveIndex = null;
+      document.getElementById('archiveViewBanner').classList.add('hidden');
+      saveState(true);
+      closeSettingsModal();
+      initRenderAll();
+      showToast('↩️ 직전 상태로 복구되었습니다!');
     }
 
     function getActiveData() {
@@ -1370,9 +1407,10 @@
         showToast('과거 시즌 열람 중입니다. 수정하려면 현재 시즌으로 복귀하세요.');
         return;
       }
+      state.lastUpdatedTs = Date.now();
       safeStorage.set(STORAGE_KEY, JSON.stringify(state));
       const syncEl = document.getElementById('syncText');
-      if (syncEl) syncEl.textContent = '저장됨';
+      if (syncEl) syncEl.textContent = '동기화됨';
       if (syncCloud && state.gasUrl) pushToGasCloud();
     }
 
@@ -1390,10 +1428,10 @@
     }
 
     // =========================================================================
-    // 2. 슬림 홈 대시보드 & 차량 모달 & 메인 중요공지 관리
+    // 2. 홈 대시보드 (다음 예정 출격 3건 + 슬로프 기상 3일 예보 + 퀵시즌권)
     // =========================================================================
     function editOpeningDate() {
-      const val = prompt('스키장 개장 기준일(YYYY-MM-DD)을 입력하세요:', state.openingDate || '2026-11-28');
+      const val = prompt('스키장 개장 기준일(YYYY-MM-DD)을 입력하세요:', state.openingDate || '2026-11-27');
       if (val && /^\d{4}-\d{2}-\d{2}$/.test(val.trim())) {
         state.openingDate = val.trim();
         saveState();
@@ -1418,9 +1456,7 @@
       lucide.createIcons();
     }
 
-    function closeVehicleModal() {
-      document.getElementById('vehicleModal').classList.add('hidden');
-    }
+    function closeVehicleModal() { document.getElementById('vehicleModal').classList.add('hidden'); }
 
     function saveVehicleModal() {
       state.vehicleInfo.carName = document.getElementById('vehCarNameInput').value.trim() || '카니발 하이브리드';
@@ -1468,8 +1504,8 @@
     function renderHomeDashboard() {
       const dObj = getActiveData();
       const resort = getCurrentResort();
-      const openStr = state.openingDate || '2026-11-28';
-      document.getElementById('openingDateLabel').textContent = `${resort.fullName} · 개장 ${openStr}`;
+      const openStr = state.openingDate || '2026-11-27';
+      document.getElementById('openingDateLabel').textContent = `${resort.fullName} · 오픈 ${openStr}`;
 
       const openDt = new Date(openStr + 'T00:00:00');
       const nowDt = new Date();
@@ -1487,20 +1523,39 @@
       ]);
       document.getElementById('homeVisitSummary').textContent = `${doneDates.size}회 완료`;
 
-      // 다음 예정 출격 위젯
+      // 홈 위젯 A: 다음 예정 출격일 최대 3개 렌더링
       const futurePlanned = Object.entries(dObj.schedules || {})
         .filter(([dt, info]) => dt >= todayIsoGlobal && info.status !== 'done')
-        .sort((a, b) => a[0].localeCompare(b[0]));
-      const nextTripEl = document.getElementById('homeNextTripChip');
-      if (futurePlanned.length > 0) {
-        const [nextDt] = futurePlanned[0];
-        const dDiff = Math.round((new Date(nextDt + 'T00:00:00') - todayMidnight) / (1000 * 60 * 60 * 24));
-        nextTripEl.textContent = `${nextDt.slice(5)} (${dDiff === 0 ? '오늘!' : 'D-' + dDiff})`;
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .slice(0, 3);
+
+      const nextTripsBox = document.getElementById('homeNextTripsList');
+      if (futurePlanned.length === 0) {
+        nextTripsBox.innerHTML = `<p class="text-[11px] text-t-muted py-1">예정된 출격 일정이 없습니다. [일정·장비] 달력에서 등록하세요.</p>`;
       } else {
-        nextTripEl.textContent = '달력에서 일정 등록';
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        nextTripsBox.innerHTML = futurePlanned.map(([dt, info]) => {
+          const targetDt = new Date(dt + 'T00:00:00');
+          const dDiff = Math.round((targetDt - todayMidnight) / (1000 * 60 * 60 * 24));
+          const dayChar = dayNames[targetDt.getDay()];
+          const kidsList = info.kids || [];
+          const crewTxt = kidsList.length === 0 ? '아빠 단독' : `아빠+${kidsList.map(k => k[0]).join('·')}`;
+          const stTxt = info.status === 'confirmed' ? '확정' : '예정';
+          const stCls = info.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400';
+          return `
+            <button onclick="switchMainTab('gear')" class="w-full px-3 py-2 rounded-xl sub-box flex items-center justify-between text-xs active:scale-98">
+              <div class="flex items-center space-x-2">
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-black ${stCls}">${stTxt}</span>
+                <strong class="text-t-main">${dt.slice(5)} (${dayChar})</strong>
+                <span class="text-[11px] text-t-sub">${crewTxt}</span>
+              </div>
+              <span class="text-[11px] font-black text-t-accent">${dDiff === 0 ? '오늘!' : 'D-' + dDiff}</span>
+            </button>
+          `;
+        }).join('');
       }
 
-      // 4인 시즌패스 퀵 바코드 오픈 버튼 (얼굴 아바타 포함)
+      // 4인 시즌패스 퀵 바코드 오픈 버튼
       document.getElementById('homeQuickPassBar').innerHTML = ALL_MEMBERS_4.map(m => {
         const prof = state.profiles[m] || {};
         const avatarHtml = prof.avatarPhoto
@@ -1514,7 +1569,6 @@
         `;
       }).join('');
 
-      // 메인 중요 공지 1개만 표시 + 접이식 전체 목록
       const mainNotice = state.homeNotices.find(n => n.pinned) || state.homeNotices[0];
       document.getElementById('homeMainPinnedNoticeText').textContent = mainNotice ? mainNotice.text : '등록된 공지사항이 없습니다.';
 
@@ -1533,7 +1587,7 @@
     }
 
     // =========================================================================
-    // 3. 상단 헤더(얼굴 아이콘 + 운영시간 티커) & 10종 테마 & 5탭 제어
+    // 3. 상단 헤더 & 10종 테마 & 5탭 제어
     // =========================================================================
     function applyUiTheme(themeName) {
       state.uiTheme = themeName;
@@ -1572,7 +1626,6 @@
       document.getElementById('headerResortBadge').textContent = resort.shortName;
       document.getElementById('resortHoursMarqueeText').textContent = resort.hoursTicker || RESORT_PRESETS.vivaldi.hoursTicker;
 
-      // 상단 프로필 바: 등록된 얼굴 사진(object-top) 원형 아이콘 렌더링
       document.getElementById('headerProfileChips').innerHTML = ALL_MEMBERS_4.map(m => {
         const prof = state.profiles[m] || {};
         const nick = prof.nickname ? `(${prof.nickname})` : '';
@@ -1640,7 +1693,7 @@
     }
 
     // =========================================================================
-    // 4. TAB 1: 날씨 + 출발시간 직접 입력 + 슬로프 + 지도
+    // 4. TAB 1: 날씨(홈 3일 예보 연동) + 출발시간 + 슬로프 + 지도
     // =========================================================================
     async function fetchSkiWeather(force = false) {
       const resort = getCurrentResort();
@@ -1692,12 +1745,25 @@
       document.getElementById('todayWindInfo').textContent = `풍속 ${windMs}m/s · 적설 ${snow}cm`;
       document.getElementById('weatherUpdatedAt').textContent = `${resort.fullName} 기준 · 갱신 ${state.weatherCache.fetchedAt}`;
 
-      // 홈 화면 한 줄 설질 브리핑 연동
-      const miniW = document.getElementById('homeMiniWeatherChip');
-      if (miniW) miniW.textContent = `${minT}°/${maxT}° · ${badgeText}`;
-
       const labels = ['오늘', '내일', '모레', '3일후'];
       const emojis = c => [71,73,75,77,85,86].includes(c) ? '🌨️' : [51,53,55,61,63,65,80,81,82].includes(c) ? '🌧️' : [1,2,3].includes(c) ? '⛅' : '☀️';
+
+      // 홈 화면 위젯 B: 오늘 포함 3일 슬로프 기상상태 카드 렌더링
+      const home3Grid = document.getElementById('homeThreeDayWeatherGrid');
+      if (home3Grid) {
+        home3Grid.innerHTML = d.time.slice(0, 3).map((dtStr, i) => {
+          const dt = new Date(dtStr);
+          const sSum = d.snowfall_sum[i];
+          return `
+            <button onclick="switchMainTab('ops')" class="p-2.5 rounded-xl sub-box text-center active:scale-95">
+              <div class="text-[10px] font-black ${i === 0 ? 'text-t-accent' : 'text-t-muted'}">${labels[i]} (${dt.getMonth()+1}/${dt.getDate()})</div>
+              <div class="text-lg my-0.5">${emojis(d.weathercode[i])}</div>
+              <div class="text-xs font-black text-t-main">${Math.round(d.temperature_2m_min[i])}° / ${Math.round(d.temperature_2m_max[i])}°</div>
+              <div class="text-[9px] text-t-sub mt-0.5">${sSum > 0 ? `신설 ${sSum}cm` : (Math.round(d.temperature_2m_max[i]) <= 2 ? '정설 최적' : '영상 기온')}</div>
+            </button>
+          `;
+        }).join('');
+      }
 
       document.getElementById('weatherForecastGrid').innerHTML = d.time.map((dtStr, i) => {
         const dt = new Date(dtStr);
@@ -1917,7 +1983,7 @@
     }
 
     // =========================================================================
-    // 5. TAB 2: 출격 캘린더 + 출발/도착 타임로그 + 주력 장비 스펙
+    // 5. TAB 2: 출격 캘린더 + 타임로그 + 장비 스펙
     // =========================================================================
     function toggleActiveKid(kidId) {
       const idx = state.activeKids.indexOf(kidId);
@@ -2195,7 +2261,7 @@
     }
 
     // =========================================================================
-    // 6. TAB 3: 혜택 스탬프 + 유류·다자녀 20% 톨비 계산기 + 가계부(기타 포함)
+    // 6. TAB 3: 혜택 스탬프 + 유류·다자녀 20% 톨비 계산기 + 가계부
     // =========================================================================
     const THEME_STYLES = {
       amber: { tag: 'text-amber-400', count: 'text-amber-400', active: 'bg-amber-500 border-amber-300 text-slate-950 shadow-md' },
@@ -2336,14 +2402,13 @@
       if (v && !isNaN(Number(v))) { state.seasonBudget = Number(v); saveState(); renderBudget(); }
     }
 
-    // 3자녀 이상 주말·공휴일 20% 통행료 감면 적용 계산
     function calcFuelAndToll(isWeekend) {
       const resort = getCurrentResort();
       const v = state.vehicleInfo;
       const km = Number(state.roundTripKm) || resort.roundTripKm || 220;
       const fuelCost = Math.round((km / (v.fuelEfficiency || 13.8)) * (v.fuelPricePerLiter || 1650) / 100) * 100;
       const fullToll = resort.roundTripTollFull || 11200;
-      const tollCost = isWeekend ? Math.round(fullToll * 0.8 / 100) * 100 : fullToll; // 주말 20% 할인(80% 부담)
+      const tollCost = isWeekend ? Math.round(fullToll * 0.8 / 100) * 100 : fullToll;
       return { fuelCost, tollCost, total: fuelCost + tollCost };
     }
 
@@ -2438,9 +2503,8 @@
     }
 
     // =========================================================================
-    // 7. TAB 4: 성장·뱃지 (건당 누적 + 5개마다 레벨업 진화 + 일기 작성취소 & 피드삭제)
+    // 7. TAB 4: 성장·뱃지 & 일기
     // =========================================================================
-    // 시간 적립 뱃지 삭제, 방문 마일스톤(10회 고수, 15회 전설, 20회 스키 신) + 건당 누적 코스·인성 뱃지
     const BADGES_CATALOG = [
       { id: 'v1', cat: 'SKILL', type: 'milestone', target: 1, icon: '🎿', title: '시즌 첫 출격', desc: '1회 방문 달성' },
       { id: 'v3', cat: 'SKILL', type: 'milestone', target: 3, icon: '🔥', title: '열정 스키어', desc: '3회 방문 달성' },
@@ -2448,12 +2512,10 @@
       { id: 'v10', cat: 'SKILL', type: 'milestone', target: 10, icon: '🥋', title: '스키고수', desc: '10번 방문 달성' },
       { id: 'v15', cat: 'SKILL', type: 'milestone', target: 15, icon: '🐉', title: '스키전설', desc: '15번 방문 달성' },
       { id: 'v20', cat: 'SKILL', type: 'milestone', target: 20, icon: '⚡', title: '스키 신', desc: '20번 방문 달성' },
-
       { id: 's_beg', cat: 'SKILL', type: 'slope_count', keyword: '초급', icon: '🌱', title: '초급 코스완주', desc: '건당 누적 · 5개마다 Lv↑' },
       { id: 's_mid1', cat: 'SKILL', type: 'slope_count', keyword: '초중급', icon: '🌊', title: '초중급 코스완주', desc: '건당 누적 · 5개마다 Lv↑' },
       { id: 's_mid2', cat: 'SKILL', type: 'slope_count', keyword: '중급', icon: '🎷', title: '중급 코스완주', desc: '건당 누적 · 5개마다 Lv↑' },
       { id: 's_adv', cat: 'SKILL', type: 'slope_count', keyword: '상급', icon: '🚀', title: '상급 코스완주', desc: '건당 누적 · 5개마다 Lv↑' },
-
       { id: 'c1', cat: 'CHAR', type: 'char_count', icon: '🤝', title: '동생·형제 지킴이', desc: '건당 누적 · 5개마다 Lv↑' },
       { id: 'c2', cat: 'CHAR', type: 'char_count', icon: '🎒', title: '장비 정리왕', desc: '건당 누적 · 5개마다 Lv↑' },
       { id: 'c3', cat: 'CHAR', type: 'char_count', icon: '🛡️', title: '안전 수호천사', desc: '건당 누적 · 5개마다 Lv↑' },
@@ -2462,21 +2524,15 @@
       { id: 'c6', cat: 'CHAR', type: 'char_count', icon: '📣', title: '가족 응원단장', desc: '건당 누적 · 5개마다 Lv↑' }
     ];
 
-    // 5개마다 업그레이드되는 Lv.1 ~ Lv.4+ 시각 스타일 반환
     function getBadgeLevelStyle(count) {
       if (count <= 0) {
         return { lv: 0, cardCls: 'sub-box opacity-45 grayscale', pillCls: 'bg-slate-700 text-slate-400', label: '미획득' };
       }
       const lv = Math.floor((count - 1) / 5) + 1;
-      if (lv === 1) {
-        return { lv: 1, cardCls: 'bg-amber-500/15 border-amber-400/50', pillCls: 'bg-amber-500 text-slate-950', label: `Lv.1 (×${count})` };
-      } else if (lv === 2) {
-        return { lv: 2, cardCls: 'bg-sky-500/20 border-sky-400/70 shadow-md shadow-sky-500/10', pillCls: 'bg-sky-400 text-slate-950', label: `Lv.2 (×${count})` };
-      } else if (lv === 3) {
-        return { lv: 3, cardCls: 'bg-emerald-500/20 border-emerald-400/80 shadow-md shadow-emerald-500/15', pillCls: 'bg-emerald-400 text-slate-950', label: `Lv.3 (×${count})` };
-      } else {
-        return { lv, cardCls: 'bg-purple-500/25 border-purple-400 shadow-lg shadow-purple-500/25', pillCls: 'bg-gradient-to-r from-amber-400 to-purple-400 text-slate-950', label: `Lv.${lv} MAX (×${count})` };
-      }
+      if (lv === 1) return { lv: 1, cardCls: 'bg-amber-500/15 border-amber-400/50', pillCls: 'bg-amber-500 text-slate-950', label: `Lv.1 (×${count})` };
+      if (lv === 2) return { lv: 2, cardCls: 'bg-sky-500/20 border-sky-400/70 shadow-md shadow-sky-500/10', pillCls: 'bg-sky-400 text-slate-950', label: `Lv.2 (×${count})` };
+      if (lv === 3) return { lv: 3, cardCls: 'bg-emerald-500/20 border-emerald-400/80 shadow-md shadow-emerald-500/15', pillCls: 'bg-emerald-400 text-slate-950', label: `Lv.3 (×${count})` };
+      return { lv, cardCls: 'bg-purple-500/25 border-purple-400 shadow-lg shadow-purple-500/25', pillCls: 'bg-gradient-to-r from-amber-400 to-purple-400 text-slate-950', label: `Lv.${lv} MAX (×${count})` };
     }
 
     function renderDiarySlopeChips() {
@@ -2551,7 +2607,6 @@
       renderGrowthAndBadges();
     }
 
-    // 인성·배려 뱃지 건당 +1 누적 (길게 누르거나 차감 필요 시 조절)
     function incrementCharBadge(badgeId) {
       if (viewingArchiveIndex !== null) return;
       const kid = state.selectedKid;
@@ -2612,7 +2667,6 @@
       btn.classList.toggle('input-box');
     }
 
-    // 귀가 일기 작성 취소(초기화)
     function cancelDiaryForm() {
       document.getElementById('diaryDate').value = todayIsoGlobal;
       document.getElementById('diaryHours').value = '4';
@@ -2627,10 +2681,10 @@
       showToast('일기 작성이 취소(초기화)되었습니다.');
     }
 
-    // 저장된 귀가 일기 삭제(취소)
     function deleteVisitDiary(diaryId) {
       if (viewingArchiveIndex !== null) return;
       if (!confirm('이 스키 일기 기록을 삭제(취소)하시겠습니까? 누적 횟수와 코스 뱃지도 함께 재계산됩니다.')) return;
+      pushAutoSnapshot('일기 삭제 전');
       const target = state.diaries.find(d => d.id === diaryId);
       state.diaries = state.diaries.filter(d => d.id !== diaryId);
       if (target && state.schedules[target.date]?.status === 'done') {
@@ -2646,6 +2700,7 @@
 
     function saveVisitDiary() {
       if (viewingArchiveIndex !== null) return showToast('과거 시즌 열람 중입니다.');
+      pushAutoSnapshot('일기 저장 전');
       const date = document.getElementById('diaryDate').value || todayIsoGlobal;
       const hours = Number(document.getElementById('diaryHours').value) || 4;
       const members = Array.from(document.querySelectorAll('.d-kid-chip.bg-t-accent')).map(el => el.dataset.kid);
@@ -2691,17 +2746,12 @@
       const allSlopes = kidDiaries.flatMap(d => d.slopes || []);
       const charCounts = state.charBadgeCounts[kid] || {};
 
-      // 각 뱃지별 누적 개수 계산
       let totalAccumulatedBadges = 0;
       const badgeStates = BADGES_CATALOG.map(b => {
         let count = 0;
-        if (b.type === 'milestone') {
-          count = visits >= b.target ? 1 : 0;
-        } else if (b.type === 'slope_count') {
-          count = allSlopes.filter(s => s.includes(b.keyword)).length;
-        } else if (b.type === 'char_count') {
-          count = charCounts[b.id] || 0;
-        }
+        if (b.type === 'milestone') count = visits >= b.target ? 1 : 0;
+        else if (b.type === 'slope_count') count = allSlopes.filter(s => s.includes(b.keyword)).length;
+        else if (b.type === 'char_count') count = charCounts[b.id] || 0;
         totalAccumulatedBadges += count;
         return { ...b, count };
       });
@@ -2780,7 +2830,7 @@
     }
 
     // =========================================================================
-    // 8. 가족 4인 프로필(1/6 대형 사진) & 바코드 생성기 & 시즌권 뷰어 팝업 & 12장 앨범
+    // 8. 가족 4인 프로필 & 바코드 생성기 & 시즌권 뷰어 팝업
     // =========================================================================
     function openProfileModal(memberId = '아빠') {
       currentEditingProfileId = memberId;
@@ -2960,12 +3010,17 @@
     }
 
     // =========================================================================
-    // 9. 설정 · 과거 시즌 열람 · 파일 백업/복원 · 구글 시트 동기화
+    // 9. 설정 · 아카이브 열람/복원 · 파일 백업 · 기기간 실시간 클라우드 동기화
     // =========================================================================
     function openSettingsModal() {
-      document.getElementById('gasUrlInput').value = state.gasUrl || '';
+      document.getElementById('gasUrlInput').value = state.gasUrl || DEFAULT_GAS_URL;
       document.getElementById('settingsTitleInput').value = state.seasonLabel || '';
       document.getElementById('resortPresetSelect').value = state.resortId || 'vivaldi';
+
+      const snapList = JSON.parse(safeStorage.get(SNAPSHOT_KEY) || '[]');
+      const snapLabel = document.getElementById('undoSnapshotBtnLabel');
+      if (snapLabel) snapLabel.textContent = `직전 작업 상태로 되돌리기 (스냅샷 ${snapList.length}개)`;
+
       renderArchivedSeasonsList();
       document.getElementById('settingsModal').classList.remove('hidden');
       lucide.createIcons();
@@ -2993,16 +3048,19 @@
     function renderArchivedSeasonsList() {
       const box = document.getElementById('archivedSeasonListBox');
       if (!state.archivedSeasons || state.archivedSeasons.length === 0) {
-        box.innerHTML = `<p class="text-[10px] text-t-muted">보관된 지난 시즌이 아직 없습니다. 새 시즌 시작 시 자동 보관됩니다.</p>`;
+        box.innerHTML = `<p class="text-[10px] text-t-muted">보관된 지난 시즌이 아직 없습니다. 시즌 종료 후 새 시즌 시작 시 자동 보관됩니다.</p>`;
         return;
       }
       box.innerHTML = state.archivedSeasons.map((a, idx) => `
-        <div class="flex items-center justify-between text-xs sub-box px-3 py-2 rounded-xl">
-          <div>
-            <strong class="text-t-main">${a.season}</strong>
+        <div class="flex items-center justify-between text-xs sub-box px-3 py-2 rounded-xl gap-1.5">
+          <div class="min-w-0">
+            <strong class="text-t-main block truncate">${a.season}</strong>
             <span class="text-[10px] text-t-muted block">일기 ${(a.diaries||[]).length}건 · 지출 ${(a.expenses||[]).length}건</span>
           </div>
-          <button onclick="viewArchivedSeason(${idx})" class="px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-400 font-black text-[11px]">기록 열람</button>
+          <div class="flex items-center space-x-1 shrink-0">
+            <button onclick="viewArchivedSeason(${idx})" class="px-2 py-1 rounded-lg bg-sky-500/20 text-sky-400 font-black text-[10px]">열람</button>
+            <button onclick="restoreArchivedSeasonToCurrent(${idx})" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 font-black text-[10px]">되돌리기</button>
+          </div>
         </div>
       `).join('');
     }
@@ -3024,10 +3082,38 @@
       showToast('현재 진행 중인 시즌으로 복귀했습니다.');
     }
 
+    // 실수로 새 시즌 시작을 눌렀을 때 보관함에서 다시 현재 시즌으로 원상복구
+    function restoreArchivedSeasonToCurrent(idx) {
+      const arch = state.archivedSeasons[idx];
+      if (!arch) return;
+      if (!confirm(`[${arch.season}] 기록을 현재 진행 중인 시즌 상태로 다시 되돌리시겠습니까?`)) return;
+
+      pushAutoSnapshot('보관 시즌 복원 전');
+      state.seasonLabel = arch.season;
+      state.resortId = arch.resortId || state.resortId;
+      state.roundTripKm = arch.roundTripKm || state.roundTripKm;
+      state.seasonBudget = arch.seasonBudget || state.seasonBudget;
+      state.preSeasonFixedSpend = arch.preSeasonFixedSpend ?? state.preSeasonFixedSpend;
+      state.diaries = JSON.parse(JSON.stringify(arch.diaries || []));
+      state.expenses = JSON.parse(JSON.stringify(arch.expenses || []));
+      state.schedules = JSON.parse(JSON.stringify(arch.schedules || {}));
+      if (arch.benefitList) state.benefitList = JSON.parse(JSON.stringify(arch.benefitList));
+      if (arch.unlimitedBenefits) state.unlimitedBenefits = JSON.parse(JSON.stringify(arch.unlimitedBenefits));
+
+      state.archivedSeasons.splice(idx, 1);
+      viewingArchiveIndex = null;
+      document.getElementById('archiveViewBanner').classList.add('hidden');
+      saveState();
+      closeSettingsModal();
+      initRenderAll();
+      showToast(`✅ [${state.seasonLabel}] 상태로 완전히 복원되었습니다!`);
+    }
+
     function startNextSeasonWizard() {
       const nextTitle = prompt('새로 시작할 시즌 제목을 입력하세요 (예: 27/28 스키 시즌 정복):', '27/28 스키 시즌 정복');
       if (!nextTitle || !nextTitle.trim()) return;
 
+      pushAutoSnapshot('새 시즌 마감 시작 전');
       state.archivedSeasons.unshift({
         season: state.seasonLabel,
         archivedAt: todayIsoGlobal,
@@ -3056,7 +3142,7 @@
       saveState();
       closeSettingsModal();
       initRenderAll();
-      showToast(`🎉 [${state.seasonLabel}] 새 시즌이 시작되었습니다!`);
+      showToast(`🎉 [${state.seasonLabel}] 새 시즌이 시작되었습니다! (실수 시 설정에서 되돌리기 가능)`);
     }
 
     function downloadFullBackupFile() {
@@ -3083,7 +3169,8 @@
             throw new Error('올바른 스키 앱 백업 파일이 아닙니다.');
           }
           if (!confirm(`백업 파일(${file.name})로 현재 데이터를 복원하시겠습니까?`)) return;
-          state = { ...JSON.parse(JSON.stringify(INITIAL_STATE)), ...parsed };
+          pushAutoSnapshot('파일 백업 복원 전');
+          state = { ...JSON.parse(JSON.stringify(INITIAL_STATE)), ...parsed, gasUrl: parsed.gasUrl || DEFAULT_GAS_URL };
           viewingArchiveIndex = null;
           document.getElementById('archiveViewBanner').classList.add('hidden');
           saveState();
@@ -3098,43 +3185,75 @@
       e.target.value = '';
     }
 
+    // 기기간 실시간 클라우드 동기화 (사파리 캐시 차단 _t=Date.now() 적용)
     async function saveGasUrlAndSync() {
-      state.gasUrl = document.getElementById('gasUrlInput').value.trim();
+      state.gasUrl = document.getElementById('gasUrlInput').value.trim() || DEFAULT_GAS_URL;
       saveState(false);
       closeSettingsModal();
-      if (state.gasUrl) await pushToGasCloud();
+      await pushToGasCloud(true);
     }
 
-    async function pushToGasCloud() {
-      if (!state.gasUrl) return;
-      document.getElementById('syncText').textContent = '동기화중';
+    async function manualForceSyncNow() {
+      const url = state.gasUrl || DEFAULT_GAS_URL;
+      if (!url) return;
+      showToast('☁️ 구글 시트에서 최신 기기 데이터를 동기화 중...');
+      await pullFromGasCloud(true);
+    }
+
+    async function pushToGasCloud(showAlert = false) {
+      const url = state.gasUrl || DEFAULT_GAS_URL;
+      if (!url) return;
+      const syncText = document.getElementById('syncText');
+      if (syncText) syncText.textContent = '전송중..';
       try {
-        await fetch(state.gasUrl, {
-          method: 'POST', mode: 'no-cors',
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ action: 'SYNC_STATE', payload: state })
         });
-        document.getElementById('syncText').textContent = '클라우드됨';
+        if (syncText) syncText.textContent = '동기화됨';
+        if (showAlert) showToast('📤 구글 시트 클라우드로 저장되었습니다!');
       } catch (e) {
-        document.getElementById('syncText').textContent = '로컬저장';
+        if (syncText) syncText.textContent = '오프라인';
       }
     }
 
-    async function pullFromGasCloud() {
-      if (!state.gasUrl) return;
+    async function pullFromGasCloud(forceOverwrite = false) {
+      const url = state.gasUrl || DEFAULT_GAS_URL;
+      if (!url) return;
+      const syncText = document.getElementById('syncText');
+      if (syncText) syncText.textContent = '불러오는중';
       try {
-        const res = await fetch(`${state.gasUrl}?action=GET_STATE`);
+        const res = await fetch(`${url}?action=GET_STATE&_t=${Date.now()}`, { cache: 'no-store' });
         const json = await res.json();
         if (json?.status === 'ok' && json.payload) {
-          state = { ...state, ...json.payload, currentTab: 'home' };
-          saveState(false);
-          initRenderAll();
+          const remote = json.payload;
+          const localTs = Number(state.lastUpdatedTs) || 0;
+          const remoteTs = Number(remote.lastUpdatedTs) || 0;
+
+          // 새 기기(localTs===0)이거나 클라우드 데이터가 더 최신일 때 자동 반영
+          if (forceOverwrite || localTs === 0 || remoteTs > localTs) {
+            const keepTab = state.currentTab || 'home';
+            state = {
+              ...JSON.parse(JSON.stringify(INITIAL_STATE)),
+              ...remote,
+              gasUrl: url,
+              currentTab: keepTab
+            };
+            safeStorage.set(STORAGE_KEY, JSON.stringify(state));
+            initRenderAll();
+            if (forceOverwrite) showToast('✅ 최신 클라우드 데이터로 동기화 완료!');
+          }
         }
-      } catch (e) {}
+        if (syncText) syncText.textContent = '동기화됨';
+      } catch (e) {
+        if (syncText) syncText.textContent = '로컬모드';
+      }
     }
 
     // =========================================================================
-    // 10. 앱 부트스트랩 초기화
+    // 10. 앱 부트스트랩 초기화 & 화면 복귀 시 자동 동기화
     // =========================================================================
     function initRenderAll() {
       document.body.setAttribute('data-theme', state.uiTheme || 'navy');
@@ -3162,7 +3281,14 @@
     window.addEventListener('DOMContentLoaded', () => {
       initRenderAll();
       fetchSkiWeather(false);
-      if (state.gasUrl) pullFromGasCloud();
+      pullFromGasCloud(false);
+    });
+
+    // 다른 기기(폰↔아이패드)에서 입력 후 앱으로 돌아올 때 자동으로 최신 시트 상태 확인
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        pullFromGasCloud(false);
+      }
     });
   </script>
 </body>
