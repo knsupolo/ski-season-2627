@@ -1227,11 +1227,11 @@
       <span id="toastMsg">저장되었습니다.</span>
     </div>
   </div>
-  <script>
+<script>
     // =========================================================================
     // 1. 보안 인증 & 세션 토큰 스토리지 & 비식별 기본값 (v6.3)
     // =========================================================================
-    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxz_f7IDUyKD6kBcRuRNhygIrbe0Sls40q2Jb4VbT0kpZGJ4Y78DBjpm6zheZJqt3_q/exec';
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyxz_f7IDUyKD6kBcRuRNhygIrbe0Sls40q2Jb4VbT0kpZGJ4Y78DBjpm6zheZJqt3_q/exec';
     const STORAGE_KEY = 'VIVALDI_2627_FAMILY_SKI_APP_V63';
     const SNAPSHOT_KEY = 'VIVALDI_2627_AUTO_SNAPSHOTS_V63';
     const AUTH_TOKEN_KEY = 'VIVALDI_2627_AUTH_TOKEN';
@@ -1596,6 +1596,11 @@
 
     function enterOfflineLocalMode() {
       hideAuthError();
+      // 보안: 비행기 모드 등으로 잠금을 우회하지 못하도록, 이 기기에 유효한 로그인 기록이 있을 때만 오프라인 열람 허용
+      if (!getStoredSessionToken()) {
+        showAuthError('오프라인 열람은 \'이 기기 기억하기\'로 로그인한 적이 있는 기기에서만 가능합니다.');
+        return;
+      }
       unlockAndBootApp(false);
       const syncText = document.getElementById('syncText');
       if (syncText) syncText.textContent = '오프라인';
@@ -3756,4 +3761,3 @@
     });
   </script>
 </body>
-</html>
